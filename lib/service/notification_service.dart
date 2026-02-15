@@ -17,6 +17,20 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
+/// 마감 알림 스케줄용 항목 (호출자가 전달)
+class DeadlineReminderItem {
+  final String habitId;
+  final String title;
+  final String? deadlineReminderTime;
+  final bool isCompletedToday;
+  const DeadlineReminderItem(
+    this.habitId,
+    this.title,
+    this.deadlineReminderTime,
+    this.isCompletedToday,
+  );
+}
+
 /// 로컬 알람 서비스
 ///
 /// Pre-reminder + 마감 알림(deadline_reminder_time) 지원.
@@ -221,6 +235,87 @@ class NotificationService {
   Future<int?> scheduleNotification(int id, String title, DateTime dueDate) async {
     // 마감 알림은 scheduleDeadlineReminders에서 별도 처리
     return null;
+  }
+
+  /// 습관 마감 알림 ID (habitId → 고정 ID, scheduleDeadlineReminders와 동일 규칙)
+  static int _deadlineReminderId(String habitId) =>
+      _toNotificationId(10000 + habitId.hashCode);
+
+  /// 단일 습관 마감 알림 예약/취소
+  /// [isCompletedToday] true면 취소, false이고 [deadlineReminderTime] 있으면 오늘 해당 시각에 예약
+  Future<void> scheduleDeadlineReminderForHabit(
+    String habitId,
+    String title,
+    String? deadlineReminderTime, {
+    required bool isCompletedToday,
+  }) async {
+    if (!_isInitialized) await initialize();
+    try {
+      if (isCompletedToday || deadlineReminderTime == null) {
+        await cancelDeadlineReminderForHabit(habitId);
+        return;
+      }
+      final parts = deadlineReminderTime.split(':');
+      if (parts.length < 2) return;
+      final hour = int.tryParse(parts[0]) ?? 0;
+      final minute = int.tryParse(parts[1]) ?? 0;
+      final now = tz.TZDateTime.now(tz.local);
+      final scheduled = tz.TZDateTime(
+        now.location,
+        now.year,
+        now.month,
+        now.day,
+        hour,
+        minute,
+      );
+      if (!scheduled.isAfter(now)) {
+        await cancelDeadlineReminderForHabit(habitId);
+        return;
+      }
+      await _notifications.zonedSchedule(
+        id: _deadlineReminderId(habitId),
+        title: title,
+        body: '마감 시간입니다.',
+        scheduledDate: scheduled,
+        notificationDetails: const NotificationDetails(
+          android: AndroidNotificationDetails(
+            _channelId,
+            _channelName,
+            channelDescription: _channelDescription,
+          ),
+        ),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      );
+      final pending = await _notifications.pendingNotificationRequests();
+      await _updateBadgeCount(pending.length);
+      debugPrint('[Notification] 마감 알림 예약: $title ${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}');
+    } catch (e) {
+      debugPrint('[Notification] 마감 알림 예약 오류: $e');
+    }
+  }
+
+  /// 전체 습관 마감 알림 동기화 (앱 시작 시 호출)
+  Future<void> scheduleDeadlineReminders(List<DeadlineReminderItem> items) async {
+    if (!_isInitialized) await initialize();
+    for (final item in items) {
+      await scheduleDeadlineReminderForHabit(
+        item.habitId,
+        item.title,
+        item.deadlineReminderTime,
+        isCompletedToday: item.isCompletedToday,
+      );
+    }
+  }
+
+  /// 당일 목표 달성 시 해당 습관 마감 알림 취소
+  Future<void> cancelDeadlineReminderForHabit(String habitId) async {
+    try {
+      await _notifications.cancel(id: _deadlineReminderId(habitId));
+      final pending = await _notifications.pendingNotificationRequests();
+      await _updateBadgeCount(pending.length);
+    } catch (e) {
+      debugPrint('[Notification] 마감 알림 취소 오류: $e');
+    }
   }
 
   /// 알람 취소

@@ -9,7 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:habitcell/service/notification_service.dart';
+import 'package:habitcell/service/notification_service.dart'
+    show DeadlineReminderItem, NotificationService;
 import 'package:habitcell/util/common_util.dart';
 import 'package:habitcell/util/app_locale.dart';
 import 'package:habitcell/util/app_storage.dart';
@@ -110,11 +111,18 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
     try {
       await HabitDatabaseHandler().ensureYesterdaySnapshot();
       await _notificationService.clearBadge();
-      if (AppStorage.getPreReminderEnabled()) {
-        await _notificationService.schedulePreReminders();
-      } else {
-        await _notificationService.cancelPreReminders();
-      }
+      await _notificationService.cancelPreReminders(); // 앱 진입 시 취소 (백그라운드에서만 예약)
+      final list = await HabitDatabaseHandler().getHabitsWithTodayCount();
+      final items = list
+          .map((h) => DeadlineReminderItem(
+                h.habit.id,
+                h.habit.title,
+                h.habit.deadlineReminderTime,
+                h.isCompleted,
+              ))
+          .toList();
+      await _notificationService.scheduleDeadlineReminders(items);
+      await _notificationService.clearBadge(); // 앱 진입 시 배지 0 (읽음 처리)
     } catch (_) {}
   }
 
@@ -123,8 +131,7 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
       _performCleanupOnResume().catchError((_) {});
-    } else if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive) {
+    } else if (state == AppLifecycleState.paused) {
       _schedulePreRemindersOnBackground().catchError((_) {});
     }
   }

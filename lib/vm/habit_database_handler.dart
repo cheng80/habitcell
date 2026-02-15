@@ -19,6 +19,7 @@ import 'package:uuid/uuid.dart';
 import 'package:habitcell/model/category.dart';
 import 'package:habitcell/model/habit.dart';
 import 'package:habitcell/model/habit_daily_log.dart';
+import 'package:habitcell/service/notification_service.dart';
 import 'package:habitcell/util/app_locale.dart';
 import 'package:habitcell/util/app_storage.dart';
 
@@ -249,6 +250,15 @@ class HabitDatabaseHandler {
       where: 'id = ?',
       whereArgs: [habit.id],
     );
+    final today = _dateToday();
+    final log = await getLogByHabitAndDate(habit.id, today);
+    final isCompleted = log?.isCompleted ?? false;
+    await NotificationService().scheduleDeadlineReminderForHabit(
+      habit.id,
+      habit.title,
+      habit.deadlineReminderTime,
+      isCompletedToday: isCompleted,
+    );
   }
 
   /// 순서 변경 (habitIds 순서대로 sort_order 갱신)
@@ -276,6 +286,7 @@ class HabitDatabaseHandler {
       where: 'id = ?',
       whereArgs: [id],
     );
+    await NotificationService().cancelDeadlineReminderForHabit(id);
   }
 
   Future<Habit> createHabit({
@@ -284,8 +295,10 @@ class HabitDatabaseHandler {
     int sortOrder = 0,
     String? categoryId,
     String? deadlineReminderTime,
+    String? createdAtForDummy,
   }) async {
     final now = _nowUtc();
+    final created = createdAtForDummy ?? now;
     final habit = Habit(
       id: _uuid.v4(),
       title: title,
@@ -293,10 +306,18 @@ class HabitDatabaseHandler {
       sortOrder: sortOrder,
       categoryId: categoryId,
       deadlineReminderTime: deadlineReminderTime,
-      createdAt: now,
+      createdAt: created,
       updatedAt: now,
     );
     await insertHabit(habit);
+    if (createdAtForDummy == null) {
+      await NotificationService().scheduleDeadlineReminderForHabit(
+      habit.id,
+      habit.title,
+      habit.deadlineReminderTime,
+      isCompletedToday: false,
+    );
+    }
     return habit;
   }
 
@@ -523,6 +544,15 @@ class HabitDatabaseHandler {
     );
     if (becomingCompleted) {
       await AppStorage.incrementHabitAchievedCount();
+      debugPrint('[Notification] 습관 완료 → 마감 예약 취소: $habitId (${habit.title})');
+      await NotificationService().cancelDeadlineReminderForHabit(habitId);
+    } else {
+      await NotificationService().scheduleDeadlineReminderForHabit(
+        habitId,
+        habit.title,
+        habit.deadlineReminderTime,
+        isCompletedToday: false,
+      );
     }
   }
 
@@ -536,7 +566,8 @@ class HabitDatabaseHandler {
   // (나중에 추가된 습관은 과거 날짜에 포함 안 함, 삭제된 습관은 삭제일 이전만 포함)
 
   /// 해당 날짜에 습관이 "활성"이었는지 (created_at <= date, 삭제 전)
-  static bool _wasActiveOnDate(Habit h, String date) {
+  /// 전체 연속 달성 계산 시 해당 날짜에 존재했던 습관만 포함하기 위해 사용
+  static bool wasActiveOnDate(Habit h, String date) {
     final created = h.createdAt.length >= 10 ? h.createdAt.substring(0, 10) : h.createdAt;
     if (created.compareTo(date) > 0) return false;
     if (!h.isDeleted) return true;
@@ -550,7 +581,7 @@ class HabitDatabaseHandler {
   /// 3) level: achieved/total 비율을 1~4로 매핑 (0%→0, 1~25%→1, ...)
   Future<void> computeAndSaveHeatmapSnapshot(String date) async {
     final allHabits = await getAllHabitsIncludingDeleted();
-    var activeHabits = allHabits.where((h) => _wasActiveOnDate(h, date)).toList();
+    var activeHabits = allHabits.where((h) => wasActiveOnDate(h, date)).toList();
 
     if (activeHabits.isEmpty) {
       final logs = await getLogsInDateRange(date, date);
@@ -649,6 +680,10 @@ class HabitDatabaseHandler {
     final categories = await getAllCategories();
     final categoryIds = categories.map((c) => c.id).toList();
 
+    final startDate = todayDt.subtract(Duration(days: _dummyDataDays - 1));
+    final createdAtStr =
+        '${startDate.year}-${startDate.month.toString().padLeft(2, '0')}-${startDate.day.toString().padLeft(2, '0')}T00:00:00.000Z';
+
     final dummyHabits = [
       ('물 8잔 마시기', 8, 0),   // 건강
       ('25분 집중 타임', 1, 1),  // 집중
@@ -663,12 +698,17 @@ class HabitDatabaseHandler {
       ('미분류 습관', 1, -1),   // 없음
     ];
 
-    // 날짜별 달성 습관 수: 사인파 + 노이즈로 그라데이션 (습관 수에 맞게 조정)
+    // 날짜별 달성 습관 수: 사인파 + 노이즈로 그라데이션
+    // d=0: 오늘, d=1: 어제. 어제~5일 전(d=1~5) 전체 달성 → 연속 5일 검증용
+    // d=7,8,9,10 일부 전체 달성 → 최근 7/30일 통계 검증용
     final nHabits = dummyHabits.length;
     final achievedPerDay = List<int>.generate(_dummyDataDays, (d) {
       final wave = (nHabits * 0.4 + nHabits * 0.4 * (1 + sin(d * 0.02))).round();
       final noise = rand.nextInt(3) - 1;
-      return (wave + noise).clamp(0, nHabits);
+      var v = (wave + noise).clamp(0, nHabits);
+      if (d >= 1 && d <= 5) v = nHabits; // 어제~5일 전: 전체 달성 (연속 5일)
+      if (d >= 7 && d <= 10 && d % 2 == 1) v = nHabits; // 7,9일 전: 전체 달성
+      return v;
     });
 
     final habits = <String, int>{}; // habitId -> dailyTarget
@@ -682,6 +722,7 @@ class HabitDatabaseHandler {
         dailyTarget: target,
         sortOrder: i,
         categoryId: categoryId,
+        createdAtForDummy: createdAtStr,
       );
       habits[habit.id] = target;
     }

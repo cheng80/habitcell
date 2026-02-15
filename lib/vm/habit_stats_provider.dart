@@ -23,7 +23,8 @@ final habitStatsProvider = FutureProvider<OverallStats>((ref) async {
 
 Future<OverallStats> _loadOverallStats() async {
   final handler = HabitDatabaseHandler();
-  final habits = await handler.getAllHabits();
+  final allHabits = await handler.getAllHabitsIncludingDeleted();
+  final habits = allHabits.where((h) => !h.isDeleted).toList();
   if (habits.isEmpty) {
     return const OverallStats(
       achieved7: 0,
@@ -58,16 +59,17 @@ Future<OverallStats> _loadOverallStats() async {
   final last7 = allDays.length >= 7 ? allDays.sublist(allDays.length - 7) : allDays;
   final last30 = allDays.length >= 30 ? allDays.sublist(allDays.length - 30) : allDays;
 
+  // 해당 날짜에 존재했던 습관만 기준으로 "전부 달성" 판단 (히트맵과 동일 정책)
   for (final d in last7) {
-    if (_isAllAchieved(d, habits, habitLogMap)) achieved7++;
+    if (_isAllAchievedOnDate(d, allHabits, habitLogMap)) achieved7++;
   }
   for (final d in last30) {
-    if (_isAllAchieved(d, habits, habitLogMap)) achieved30++;
+    if (_isAllAchievedOnDate(d, allHabits, habitLogMap)) achieved30++;
   }
 
-  // streak: 오늘(allDays 마지막)부터 역순으로, "전부 달성"이 끊기는 날까지
-  for (var i = allDays.length - 1; i >= 0; i--) {
-    if (_isAllAchieved(allDays[i], habits, habitLogMap)) {
+  // streak: 어제부터 역순으로, "전부 달성"이 끊기는 날까지 (오늘은 아직 지나지 않은 날이라 제외)
+  for (var i = allDays.length - 2; i >= 0; i--) {
+    if (_isAllAchievedOnDate(allDays[i], allHabits, habitLogMap)) {
       streak++;
     } else {
       break;
@@ -124,7 +126,8 @@ HabitStats _calcHabitStats(
   }
 
   var streak = 0;
-  for (var i = range.length - 1; i >= 0; i--) {
+  // 어제부터 역순 (오늘은 아직 지나지 않은 날이라 제외)
+  for (var i = range.length - 2; i >= 0; i--) {
     if ((logByDate[range[i]]?.count ?? 0) >= target) {
       streak++;
     } else {
@@ -141,13 +144,16 @@ HabitStats _calcHabitStats(
   );
 }
 
-/// 해당 날짜에 모든 습관이 달성(count >= daily_target)했는지
-bool _isAllAchieved(
+/// 해당 날짜에 "그날 존재했던" 모든 습관이 달성(count >= daily_target)했는지
+/// (나중에 추가된 습관은 과거 날짜에서 제외, 히트맵과 동일 정책)
+bool _isAllAchievedOnDate(
   String date,
-  List<Habit> habits,
+  List<Habit> allHabits,
   Map<String, List<HabitDailyLog>> habitLogMap,
 ) {
-  for (final habit in habits) {
+  final activeHabits = allHabits.where((h) => HabitDatabaseHandler.wasActiveOnDate(h, date)).toList();
+  if (activeHabits.isEmpty) return false;
+  for (final habit in activeHabits) {
     final logs = habitLogMap[habit.id];
     final log = logs?.where((l) => l.date == date).firstOrNull;
     final count = log?.count ?? 0;
