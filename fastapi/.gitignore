@@ -19,6 +19,7 @@ ENV/
 
 # Firebase 서비스 계정 키 (절대 커밋하지 않음!)
 serviceAccountKey.json
+serviceAccountKey.zip
 *.json.key
 
 # IDE
