@@ -1,25 +1,25 @@
 // notification_service.dart
-// Todo 마감일(dueDate) 기반 로컬 알람 - 포그라운드/백그라운드 모두 지원
+// 로컬 알람 - 습관 리마인드용 (추후 Habit reminder_time 연동)
 //
 // [기능]
-// - 로컬 알람: flutter_local_notifications로 마감일 알림 예약
 // - 앱 아이콘 배지: 예약된 알람 개수 표시 (app_badge_plus)
 // - 앱 진입 시 배지 제거 (읽음 처리)
+// - scheduleNotification, cleanupExpiredNotifications: Habit 연동 시 구현
+
+import 'dart:math';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:app_badge_plus/app_badge_plus.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:habitcell/model/todo.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 /// 로컬 알람 서비스
 ///
-/// flutter_local_notifications를 사용하여 Todo 마감일 알람을 관리합니다.
-/// 1 Todo당 최대 1개의 알람만 지원합니다.
-/// 포그라운드/백그라운드 모두에서 알림이 표시됩니다.
+/// 습관 리마인드(reminder_time) 연동 예정.
+/// 현재: clearBadge, initialize, requestPermission만 사용.
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
@@ -201,9 +201,8 @@ class NotificationService {
     return result ?? false;
   }
 
-  /// Android 알람 ID는 32비트 제한 → todo.no를 안전한 ID로 변환
-  static int _toNotificationId(int todoNo) {
-    return (todoNo % 0x7FFFFFFF).abs();
+  static int _toNotificationId(int id) {
+    return (id % 0x7FFFFFFF).abs();
   }
 
   /// 예약된 알람 개수 → 앱 아이콘 배지 숫자 반영 (iOS, Android 일부 런처)
@@ -218,82 +217,13 @@ class NotificationService {
     await _updateBadgeCount(0);
   }
 
-  /// 알람 등록 (dueDate가 설정된 Todo만)
-  Future<int?> scheduleNotification(Todo todo) async {
-    if (todo.dueDate == null) return null;
-
-    final dueDate = todo.dueDate!;
-    final now = DateTime.now();
-    if (dueDate.isBefore(now)) return null;
-
-    final duration = dueDate.difference(now);
-    if (duration.inMinutes < 1) return null;
-
-    if (!_isInitialized) await initialize();
-
-    final notificationId = _toNotificationId(todo.no);
-
-    try {
-      await cancelNotification(todo.no); // 기존 알람 있으면 먼저 취소
-
-      // 배지 숫자 = 현재 예약 개수 + 이번에 추가하는 1개
-      final pending = await _notifications.pendingNotificationRequests();
-      final badgeNumber = pending.length + 1;
-
-      final scheduledDate = tz.TZDateTime(
-        tz.local,
-        dueDate.year,
-        dueDate.month,
-        dueDate.day,
-        dueDate.hour,
-        dueDate.minute,
-      );
-
-      const AndroidNotificationDetails androidDetails =
-          AndroidNotificationDetails(
-        _channelId,
-        _channelName,
-        channelDescription: _channelDescription,
-        importance: Importance.high,
-        priority: Priority.high,
-        playSound: true,
-        enableVibration: true,
-      );
-
-      // iOS: 알림 도착 시 앱 아이콘에 badgeNumber 표시
-      final DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
-        presentAlert: true,
-        presentBadge: true,
-        presentSound: true,
-        presentBanner: true,
-        presentList: true,
-        badgeNumber: badgeNumber,
-      );
-
-      final NotificationDetails details = NotificationDetails(
-        android: androidDetails,
-        iOS: iosDetails,
-      );
-
-      await _notifications.zonedSchedule(
-        id: notificationId,
-        title: todo.content.isEmpty ? 'todoDefaultTitle'.tr() : todo.content,
-        body: 'dueTimeBody'.tr(),
-        scheduledDate: scheduledDate,
-        notificationDetails: details,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        matchDateTimeComponents: null,
-        payload: dueDate.toIso8601String(),
-      );
-
-      return todo.no;
-    } catch (e) {
-      debugPrint('[Notification] 알람 등록 오류: $e');
-      return null;
-    }
+  /// 알람 등록 (Habit reminder_time 연동 시 구현)
+  Future<int?> scheduleNotification(int id, String title, DateTime dueDate) async {
+    // TODO: Habit reminder_time 연동
+    return null;
   }
 
-  /// 알람 취소 (todoNo 전달 시 내부에서 32비트 ID로 변환)
+  /// 알람 취소
   /// 취소 후 남은 예약 개수로 배지 업데이트
   Future<void> cancelNotification(int todoNo) async {
     try {
@@ -351,18 +281,82 @@ class NotificationService {
     }
   }
 
-  /// 과거 마감일 알람 정리 (앱 시작/포그라운드 복귀 시 main에서 호출)
-  /// 마감일 지난 Todo의 알람을 취소하고 DB dueDate는 유지
-  Future<void> cleanupExpiredNotifications({
-    required List<Todo> todos,
-    required Future<void> Function(Todo) updateTodo,
-  }) async {
-    final now = DateTime.now();
-    for (final todo in todos) {
-      if (todo.dueDate == null) continue;
-      if (todo.dueDate!.isBefore(now)) {
-        await cancelNotification(todo.no);
+  /// 과거 알람 정리 (Habit 연동 시 구현)
+  Future<void> cleanupExpiredNotifications() async {
+    // TODO: Habit reminder 연동
+  }
+
+  // ─── 미리 알림 (점심/저녁 푸시) ─────────────────
+  static const int _idLunch = 9001;
+  static const int _idDinner = 9002;
+  static const String _title = '습관을 체크해 보아요';
+  static const String _body = '오늘의 습관을 확인해 보세요';
+
+  /// 점심(12:00±30분), 저녁(19:00±30분) 푸시 스케줄
+  /// 해당 시간대 1시간 내 랜덤 시각으로 예약
+  /// 앱이 백그라운드일 때만 의미 있음 (포그라운드 시 main에서 취소)
+  Future<void> schedulePreReminders() async {
+    if (!_isInitialized) await initialize();
+    try {
+      final now = tz.TZDateTime.now(tz.local);
+      final today = tz.TZDateTime(now.location, now.year, now.month, now.day);
+      final random = Random();
+
+      // 점심: 11:30 ~ 12:30 (30분 랜덤)
+      final lunchMinuteOffset = random.nextInt(61);
+      final lunch = today.add(const Duration(hours: 11, minutes: 30)).add(Duration(minutes: lunchMinuteOffset));
+
+      // 저녁: 18:30 ~ 19:30 (30분 랜덤)
+      final dinnerMinuteOffset = random.nextInt(61);
+      final dinner = today.add(const Duration(hours: 18, minutes: 30)).add(Duration(minutes: dinnerMinuteOffset));
+
+      if (lunch.isAfter(now)) {
+        await _notifications.zonedSchedule(
+          id: _idLunch,
+          title: _title,
+          body: _body,
+          scheduledDate: lunch,
+          notificationDetails: const NotificationDetails(
+            android: AndroidNotificationDetails(
+              _channelId,
+              _channelName,
+              channelDescription: _channelDescription,
+            ),
+          ),
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        );
+        debugPrint('[Notification] 미리알림 점심 예약: ${lunch.hour}:${lunch.minute}');
       }
+      if (dinner.isAfter(now)) {
+        await _notifications.zonedSchedule(
+          id: _idDinner,
+          title: _title,
+          body: _body,
+          scheduledDate: dinner,
+          notificationDetails: const NotificationDetails(
+            android: AndroidNotificationDetails(
+              _channelId,
+              _channelName,
+              channelDescription: _channelDescription,
+            ),
+          ),
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        );
+        debugPrint('[Notification] 미리알림 저녁 예약: ${dinner.hour}:${dinner.minute}');
+      }
+    } catch (e) {
+      debugPrint('[Notification] 미리알림 예약 오류: $e');
+    }
+  }
+
+  /// 미리 알림 예약 취소 (포그라운드 진입 시 호출)
+  Future<void> cancelPreReminders() async {
+    try {
+      await _notifications.cancel(id: _idLunch);
+      await _notifications.cancel(id: _idDinner);
+      debugPrint('[Notification] 미리알림 취소');
+    } catch (e) {
+      debugPrint('[Notification] 미리알림 취소 오류: $e');
     }
   }
 }

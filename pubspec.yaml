@@ -48,15 +48,11 @@ dependencies:
   # 네트워크/API
   http: ^1.1.0 # HTTP 클라이언트 (NetworkUtil, AddressUtil에서 사용)
 
-  # Hive (로컬 데이터베이스)
-  hive: ^2.2.3
-  hive_flutter: ^1.1.0
-
-
-  # SQLite > sqflite로 찾아야 함 & path 필요
+  # SQLite (습관 앱 데이터)
   sqflite: ^2.4.2
-  # Path for SQLite
   path: ^1.9.1
+  path_provider: ^2.1.5  # DB 파일 경로
+  uuid: ^4.5.1  # Habit ID, device_uuid 생성
 
   # 로컬 알람 등록시 필요
   flutter_local_notifications: ^20.1.0

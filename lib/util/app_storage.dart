@@ -85,5 +85,15 @@ class AppStorage {
   static Future<void> setWakelockEnabled(bool enabled) =>
       _storage.write(_keyWakelock, enabled);
 
+  // ─── 미리 알림 (점심/저녁 푸시) ─────────────────
+  static const String _keyPreReminder = 'pre_reminder_enabled';
+
+  /// 미리 알림 ON/OFF (기본값 true)
+  static bool getPreReminderEnabled() =>
+      _storage.read<bool>(_keyPreReminder) ?? true;
+
+  static Future<void> setPreReminderEnabled(bool enabled) =>
+      _storage.write(_keyPreReminder, enabled);
+
   // ─── 추후 설정 추가 시 여기에 ────────────────────
 }

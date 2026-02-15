@@ -1,6 +1,21 @@
 # TODO - Habit App 구현 항목
 
-> docs/habit (master_habit_app_spec_v_1_0.md, habit_app_db_schema_master_v_1_0.md) 기준으로 세분화
+> docs/habit (master_habit_app_spec_v_1_0.md, **sqlite_schema_v1.md**) 기준  
+> SQLite 로컬 우선. MySQL/FastAPI 후순위.
+
+---
+
+## 진행 순서
+
+| 단계 | 섹션 | 내용 | 상태 |
+|------|------|------|------|
+| 1 | 0 | 프로젝트 전환 (HabitCell) | ✅ 완료 |
+| 2 | 1 | 데이터 레이어 (Hive → SQLite) | ✅ 완료 |
+| 3 | 6.2 + 0.2 | Todo/Tag 제거, Hive 제거 | ✅ 완료 |
+| 4 | 2 | Flutter 핵심 (습관 CRUD, +1/-1) | ✅ 완료 |
+| 5 | 5 | UI (홈, 분석, 설정) | ✅ 기본 골격 완료 |
+| 6 | 2.3 | 히트맵 + 잔디 테마 | 🔄 다음 |
+| 7 | 2.5, 3, 4 | 알림, 백업/복구, FastAPI | 대기 |
 
 ---
 
@@ -14,56 +29,61 @@
 - [x] README.md: HabitCell 전환 반영
 
 ### 0.2 기존 TagDo 코드 정리
-- [ ] Todo/Tag 관련 코드 제거 또는 보존 결정
-- [ ] Hive 관련 import/초기화 제거 (SQLite 전환 후)
-- [ ] Drawer 메뉴: 태그 관리 → 습관 관리 등으로 변경
+- [x] Todo/Tag 관련 코드 제거
+- [x] Hive 관련 import/초기화 제거
+- [x] Drawer 메뉴: 습관 관리 → 카테고리 관리로 변경
 
 ---
 
 ## 1. 데이터 레이어 (Hive → SQLite)
 
 ### 1.1 의존성
-- [ ] pubspec.yaml: hive, hive_flutter 제거
-- [ ] pubspec.yaml: sqflite, path 추가 (이미 있음 확인)
-- [ ] path_provider 추가 (필요 시 DB 경로)
+- [x] pubspec.yaml: hive, hive_flutter 제거
+- [x] pubspec.yaml: sqflite, path 유지
+- [x] path_provider, uuid 추가
 
 ### 1.2 SQLite 스키마 생성
-- [ ] `habit_app_db_schema_master_v_1_0.md` 기반 SQLite DDL 작성
-- [ ] habits 테이블: id(UUID), title, daily_target, sort_order, reminder_time, is_active, is_deleted, is_dirty, created_at, updated_at
-- [ ] habit_daily_logs 테이블: id, habit_id, date, count, is_deleted, is_dirty, created_at, updated_at
-- [ ] app_settings 테이블: key, value, updated_at
-- [ ] PRAGMA foreign_keys = ON 적용
-- [ ] 인덱스 생성 (idx_habits_active, idx_habits_updated, uk_habit_date, idx_logs_updated)
+- [x] `sqlite_schema_v1.md` 확정 스키마 (lib/db/habit_db_schema.dart)
+- [x] habits 테이블
+- [x] habit_daily_logs 테이블
+- [x] categories 테이블 (id, name, color_value, sort_order)
+- [x] habits.category_id (FK → categories)
+- [x] app_settings 테이블
+- [x] PRAGMA foreign_keys = ON, 인덱스 생성
 
 ### 1.3 모델 클래스
-- [ ] Habit 모델 생성 (id, title, daily_target, sort_order, reminder_time, is_active, is_deleted, is_dirty, created_at, updated_at)
-- [ ] HabitDailyLog 모델 생성 (id, habit_id, date, count, is_deleted, is_dirty, created_at, updated_at)
-- [ ] AppSetting 모델 또는 Map<String, String> 활용
+- [x] Habit 모델 (lib/model/habit.dart)
+- [x] HabitDailyLog 모델 (lib/model/habit_daily_log.dart)
+- [x] Category 모델 (lib/model/category.dart)
+- [x] app_settings: getSetting/setSetting (Map 대신 Handler 메서드)
 
 ### 1.4 DB Handler
-- [ ] DatabaseHandler → HabitDatabaseHandler (또는 SQLite 전용 Handler로 교체)
-- [ ] habits CRUD: insert, update, delete(소프트), getAll, getById
-- [ ] habit_daily_logs CRUD: upsert(habit_id, date), getByHabitAndDate, getByHabitId
-- [ ] app_settings: get, set
-- [ ] DB 초기화 (앱 최초 실행 시 스키마 생성)
+- [x] HabitDatabaseHandler (lib/vm/habit_database_handler.dart) - SQLite 전용
+- [x] habits CRUD: insert, update, delete(소프트), getAll, getById, createHabit
+- [x] categories CRUD: insert, update, delete, getAll, getById, createCategory
+- [x] habit_daily_logs: upsert, getLogByHabitAndDate, getLogsByHabitId, incrementCount, decrementCount
+- [x] app_settings: getSetting, setSetting
+- [x] DB 초기화 (onCreate에서 스키마 생성)
 
 ---
 
 ## 2. Flutter - 핵심 기능
 
 ### 2.1 습관 CRUD
-- [ ] 습관 생성: Habit 생성 UI + Handler.insert
-- [ ] 습관 편집: title, daily_target, reminder_time, sort_order 수정
-- [ ] 습관 삭제: is_deleted=true (소프트 삭제)
-- [ ] 습관 목록: is_deleted=false만 조회, sort_order 정렬
-- [ ] is_active 토글 (필요 시)
+- [x] 습관 생성: HabitEditSheet + Handler.createHabit
+- [x] 습관 편집: title, daily_target 수정
+- [x] 습관 삭제: is_deleted=true (소프트 삭제)
+- [x] 습관 목록: is_deleted=false만 조회, sort_order 정렬
+- [x] sort_order: 카드 오른쪽 드래그 핸들로 순서 변경
+- [ ] reminder_time (추후)
 
 ### 2.2 일별 기록 (+1/-1)
-- [ ] 홈 화면: 습관별 오늘 카운트 표시
-- [ ] +1 버튼: habit_daily_logs count 증가 (upsert)
-- [ ] -1 버튼: count 감소 (0 미만 방지)
-- [ ] 달성 판단: count >= daily_target 시 시각적 표시
-- [ ] is_dirty 플래그: 변경 시 1로 설정
+- [x] 홈 화면: 습관별 오늘 카운트 표시
+- [x] +1 버튼: habit_daily_logs count 증가 (upsert)
+- [x] -1 버튼: count 감소 (0 미만 방지)
+- [x] 달성 판단: count >= daily_target 시 시각적 표시
+- [x] 완료 토글: count >= target 시 완료 버튼 표시, 토글 시 맨 아래로 이동
+- [x] is_dirty 플래그: 변경 시 1로 설정
 
 ### 2.3 히트맵 (GitHub 잔디 모티브)
 - [ ] 월별 히트맵 위젯
@@ -86,7 +106,7 @@
 
 ### 2.5 로컬 알림
 - [ ] reminder_time: 습관별 HH:mm에 로컬 알림 예약
-- [ ] 마감 알림 옵션: 미달성 습관이 있는 날 21:00 같은 고정 시각
+- [x] 마감 알림: 습관별 사용자 지정 시간 (deadline_reminder_time, HH:mm)
 - [ ] 달성 시 자동 취소: 당일 목표 달성 시 해당 습관 알림 + 마감 알림 취소
 - [ ] flutter_local_notifications 연동 (기존 NotificationService 활용/수정)
 
@@ -175,11 +195,13 @@
 ## 5. UI/설정
 
 ### 5.1 홈 화면
-- [ ] 습관 리스트 (sort_order 정렬)
-- [ ] 오늘 수행 카운터 (+1/-1)
-- [ ] 달성 시 즉시 시각 변화 (색상/체크 등)
+- [x] 습관 리스트 (sort_order 정렬)
+- [x] 오늘 수행 카운터 (+1/-1)
+- [x] 달성 시 즉시 시각 변화 (색상)
+- [x] 카테고리 바 (윈도우바 스타일: 상단 색상+이름)
 
 ### 5.2 분석 화면
+- [x] 기본 골격 (플레이스홀더)
 - [ ] 히트맵 (월/연)
 - [ ] Streak 표시
 - [ ] 최근 7/30일 달성률
@@ -187,13 +209,14 @@
 ### 5.3 설정 화면
 - [ ] 백업: 수동/자동, 이메일 등록, 마지막 백업 시간
 - [ ] 복구 버튼
-- [ ] 테마 (라이트/다크) - 기존 유지
-- [ ] 다국어 - 기존 유지
-- [ ] Drawer 구조: 습관관리, 설정, 백업, 언어, 테마 등
+- [x] 테마 (라이트/다크) - Drawer
+- [x] 다국어 - Drawer
+- [x] Drawer: 카테고리 관리, 다크모드, 화면꺼짐, 미리 알림, 언어, 평점
 
 ### 5.4 습관 편집
-- [ ] title, daily_target, reminder_time 입력
-- [ ] sort_order 변경 (드래그 등)
+- [x] title (maxLength 30, 글자수 표시), daily_target 입력
+- [x] 카테고리 선택 (5열 그리드, 프리셋+전체 색상)
+- [ ] reminder_time (추후)
 
 ---
 
@@ -208,11 +231,11 @@
 - [ ] MVVM 패턴 (Handler, Notifier)
 
 ### 6.2 제거 또는 대체
-- [ ] Todo 모델 → Habit 모델
-- [ ] Tag 모델 → (습관앱에 태그 없음, 제거 또는 다른 용도)
-- [ ] Hive → SQLite
-- [ ] TodoListNotifier → HabitListNotifier
-- [ ] TagHandler, TagListNotifier → (제거 또는 습관 카테고리로 전환)
+- [x] Todo 모델 → Habit 모델
+- [x] Tag 모델 → Category 모델 (기본 카테고리: 건강, 집중, 독서 등)
+- [x] Hive → SQLite
+- [x] TodoListNotifier → HabitListNotifier
+- [x] TagHandler, TagListNotifier → CategoryListNotifier
 
 ### 6.3 수정/마이그레이션
 - [ ] AppStorage: tutorial_completed 등 → habit_app용 키로 정리
@@ -224,7 +247,7 @@
 ## 7. 출시 준비
 
 - [ ] [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md) 참고
-- [ ] Bundle ID / applicationId: habit_app 최종 확정
+- [x] Bundle ID / applicationId: com.cheng80.habitcell 확정
 - [ ] 카테고리: 생산성 또는 건강/피트니스
 - [ ] 개인정보처리방침 URL (iOS 필수)
 
@@ -253,15 +276,15 @@
 ## 10. 수정 필요 사항 (검토)
 
 ### 10.1 pubspec.yaml
-- [ ] hive, hive_flutter 제거
-- [ ] flutter_colorpicker: 태그 색상용 → 습관앱에서 사용 여부 결정
+- [x] hive, hive_flutter 제거
+- [x] flutter_colorpicker: 카테고리 색상 선택용
 - [ ] showcaseview: 튜토리얼 → 습관앱 온보딩으로 수정
 - [ ] in_app_review: habit 관련 지표로 조건 변경
 
 ### 10.2 기존 문서
 - [x] README.md: HabitCell 반영
-- [ ] CURSOR.md: 그대로 유지 (작업 방식, MVVM 등)
-- [ ] docs/RELEASE_CHECKLIST.md: habit_app 전용 항목 추가
+- [x] CURSOR.md: 그대로 유지 (작업 방식, MVVM 등)
+- [x] docs/RELEASE_CHECKLIST.md: HabitCell 전용 항목 반영
 
 ### 10.3 테스트
 - [ ] widget_test.dart: Todo → Habit 테스트로 수정

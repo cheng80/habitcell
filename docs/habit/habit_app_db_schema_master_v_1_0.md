@@ -1,6 +1,7 @@
 # Habit App DB Schema Master v1.0
 
-> 본 문서는 Local-first 구조의 습관 앱을 위한 **전체 데이터베이스 설계 단일 문서**이다. 이 문서만으로 SQLite(클라이언트)와 MySQL(서버 백업) 스키마를 구현할 수 있다.
+> **SQLite 확정 문서**: `sqlite_schema_v1.md` 참조.  
+> 본 문서는 MySQL(서버 백업) 포함 전체 설계 참고용. **MySQL/FastAPI는 후순위.**
 
 ---
 

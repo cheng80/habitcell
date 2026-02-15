@@ -1,25 +1,26 @@
-// tag_settings.dart
-// 태그 관리 화면 (신규 생성, 수정, 삭제)
+// category_settings.dart
+// 카테고리 관리 화면 (색상 + 이름, hivetodo TagSettings 참조)
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:habitcell/model/tag.dart';
-import 'package:habitcell/model/todo_color.dart';
+import 'package:habitcell/model/category.dart';
+import 'package:habitcell/model/habit_color.dart';
 import 'package:habitcell/theme/app_colors.dart';
 import 'package:habitcell/theme/config_ui.dart';
-import 'package:habitcell/vm/tag_list_notifier.dart';
+import 'package:habitcell/util/sheet_util.dart';
+import 'package:habitcell/vm/category_list_notifier.dart';
 
-/// 태그 설정 화면
-class TagSettings extends ConsumerWidget {
-  const TagSettings({super.key});
+/// 카테고리 관리 화면
+class CategorySettings extends ConsumerWidget {
+  const CategorySettings({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final p = context.palette;
-    final tagsAsync = ref.watch(tagListProvider);
+    final categoriesAsync = ref.watch(categoryListProvider);
 
     return Scaffold(
       backgroundColor: p.background,
@@ -27,7 +28,7 @@ class TagSettings extends ConsumerWidget {
         backgroundColor: p.background,
         iconTheme: IconThemeData(color: p.icon),
         title: Text(
-          'tagManage'.tr(),
+          'categoryManage'.tr(),
           style: TextStyle(
             color: p.textPrimary,
             fontWeight: FontWeight.w900,
@@ -35,19 +36,18 @@ class TagSettings extends ConsumerWidget {
           ),
         ),
         actions: [
-          /// 태그 추가 버튼
           IconButton(
-            onPressed: () => _showTagEditor(context, ref),
+            onPressed: () => _showCategoryEditor(context, ref),
             icon: Icon(Icons.add, color: p.icon, size: 28),
           ),
         ],
       ),
-      body: tagsAsync.when(
-        data: (tags) {
-          if (tags.isEmpty) {
+      body: categoriesAsync.when(
+        data: (categories) {
+          if (categories.isEmpty) {
             return Center(
               child: Text(
-                'tagEmpty'.tr(),
+                'categoryEmpty'.tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(color: p.textSecondary, fontSize: 16),
               ),
@@ -55,57 +55,54 @@ class TagSettings extends ConsumerWidget {
           }
           return ListView.separated(
             padding: const EdgeInsets.symmetric(vertical: 12),
-            itemCount: tags.length,
-            separatorBuilder: (_, _) => Divider(
+            itemCount: categories.length,
+            separatorBuilder: (context, index) => Divider(
               color: p.divider,
               height: 1,
               indent: ConfigUI.screenPaddingH,
               endIndent: ConfigUI.screenPaddingH,
             ),
             itemBuilder: (context, index) {
-              final tag = tags[index];
-              return _TagTile(
-                tag: tag,
-                onEdit: () => _showTagEditor(context, ref, tag: tag),
-                onDelete: () => _confirmDelete(context, ref, tag),
+              final category = categories[index];
+              return _CategoryTile(
+                category: category,
+                onEdit: () => _showCategoryEditor(context, ref, category: category),
+                onDelete: () => _confirmDelete(context, ref, category),
               );
             },
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
-          child: Text('${'errorOccurred'.tr()}: $e', style: TextStyle(color: p.textPrimary)),
+          child: Text(
+            '${'errorOccurred'.tr()}: $e',
+            style: TextStyle(color: p.textPrimary),
+          ),
         ),
       ),
     );
   }
 
-  /// 태그 생성/수정 다이얼로그
-  void _showTagEditor(BuildContext context, WidgetRef ref, {Tag? tag}) {
+  void _showCategoryEditor(BuildContext context, WidgetRef ref, {Category? category}) {
     final p = context.palette;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: p.sheetBackground,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(ConfigUI.radiusSheet),
-        ),
-      ),
-      builder: (_) => _TagEditorSheet(tag: tag),
+      shape: defaultSheetShape,
+      builder: (_) => _CategoryEditorSheet(category: category),
     );
   }
 
-  /// 삭제 확인 다이얼로그
-  void _confirmDelete(BuildContext context, WidgetRef ref, Tag tag) {
+  void _confirmDelete(BuildContext context, WidgetRef ref, Category category) {
     final p = context.palette;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: p.sheetBackground,
-        title: Text('tagDelete'.tr(), style: TextStyle(color: p.textOnSheet)),
+        title: Text('categoryDelete'.tr(), style: TextStyle(color: p.textOnSheet)),
         content: Text(
-          'tagDeleteConfirm'.tr(namedArgs: {'name': tag.name}),
+          'categoryDeleteConfirm'.tr(namedArgs: {'name': category.name}),
           style: TextStyle(color: p.iconOnSheet),
         ),
         actions: [
@@ -115,7 +112,7 @@ class TagSettings extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () {
-              ref.read(tagListProvider.notifier).deleteTag(tag.id);
+              ref.read(categoryListProvider.notifier).deleteCategory(category.id);
               Navigator.pop(ctx);
             },
             child: Text('delete'.tr(), style: TextStyle(color: p.accent)),
@@ -126,16 +123,13 @@ class TagSettings extends ConsumerWidget {
   }
 }
 
-/// ─────────────────────────────────────────────────
-/// 태그 목록 타일
-/// ─────────────────────────────────────────────────
-class _TagTile extends StatelessWidget {
-  final Tag tag;
+class _CategoryTile extends StatelessWidget {
+  final Category category;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _TagTile({
-    required this.tag,
+  const _CategoryTile({
+    required this.category,
     required this.onEdit,
     required this.onDelete,
   });
@@ -153,12 +147,12 @@ class _TagTile extends StatelessWidget {
         width: 32,
         height: 32,
         decoration: BoxDecoration(
-          color: tag.color,
+          color: category.color,
           borderRadius: ConfigUI.tagCellRadius,
         ),
       ),
       title: Text(
-        tag.name,
+        category.name,
         style: TextStyle(
           color: p.textPrimary,
           fontSize: 16,
@@ -186,29 +180,26 @@ class _TagTile extends StatelessWidget {
   }
 }
 
-/// ─────────────────────────────────────────────────
-/// 태그 생성/수정 BottomSheet
-/// ─────────────────────────────────────────────────
-class _TagEditorSheet extends ConsumerStatefulWidget {
-  final Tag? tag;
+class _CategoryEditorSheet extends ConsumerStatefulWidget {
+  final Category? category;
 
-  const _TagEditorSheet({this.tag});
+  const _CategoryEditorSheet({this.category});
 
   @override
-  ConsumerState<_TagEditorSheet> createState() => _TagEditorSheetState();
+  ConsumerState<_CategoryEditorSheet> createState() => _CategoryEditorSheetState();
 }
 
-class _TagEditorSheetState extends ConsumerState<_TagEditorSheet> {
+class _CategoryEditorSheetState extends ConsumerState<_CategoryEditorSheet> {
   late final TextEditingController _nameController;
   late Color _selectedColor;
 
-  bool get _isEdit => widget.tag != null;
+  bool get _isEdit => widget.category != null;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.tag?.name ?? '');
-    _selectedColor = widget.tag?.color ?? TodoColor.presets.first;
+    _nameController = TextEditingController(text: widget.category?.name ?? '');
+    _selectedColor = widget.category?.color ?? HabitColor.presets.first;
   }
 
   @override
@@ -232,9 +223,8 @@ class _TagEditorSheetState extends ConsumerState<_TagEditorSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /// 헤더
           Text(
-            _isEdit ? 'tagEdit'.tr() : 'tagAdd'.tr(),
+            _isEdit ? 'categoryEdit'.tr() : 'categoryAdd'.tr(),
             style: TextStyle(
               color: p.textOnSheet,
               fontSize: 18,
@@ -242,15 +232,13 @@ class _TagEditorSheetState extends ConsumerState<_TagEditorSheet> {
             ),
           ),
           const SizedBox(height: 20),
-
-          /// 이름 입력 (최대 10글자)
           TextField(
             controller: _nameController,
             maxLength: 10,
             style: TextStyle(color: p.textOnSheet, fontSize: 16),
             cursorColor: p.textOnSheet,
             decoration: InputDecoration(
-              labelText: 'tagName'.tr(),
+              labelText: 'categoryName'.tr(),
               labelStyle: TextStyle(color: p.iconOnSheet),
               counterStyle: TextStyle(color: p.iconOnSheet),
               enabledBorder: OutlineInputBorder(
@@ -267,8 +255,6 @@ class _TagEditorSheetState extends ConsumerState<_TagEditorSheet> {
             ),
           ),
           const SizedBox(height: 20),
-
-          /// 색상 선택
           Text(
             'color'.tr(),
             style: TextStyle(
@@ -277,12 +263,9 @@ class _TagEditorSheetState extends ConsumerState<_TagEditorSheet> {
             ),
           ),
           const SizedBox(height: 12),
-
-          /// 현재 선택된 색상 미리보기 + 색상 선택 버튼
           Row(
             spacing: 12,
             children: [
-              /// 선택된 색상 미리보기
               Container(
                 width: ConfigUI.minTouchTarget,
                 height: ConfigUI.minTouchTarget,
@@ -295,8 +278,6 @@ class _TagEditorSheetState extends ConsumerState<_TagEditorSheet> {
                   ),
                 ),
               ),
-
-              /// 프리셋에서 선택 버튼
               OutlinedButton.icon(
                 onPressed: _showPresetPicker,
                 icon: Icon(Icons.palette, size: 18, color: p.textOnSheet),
@@ -308,8 +289,6 @@ class _TagEditorSheetState extends ConsumerState<_TagEditorSheet> {
                   ),
                 ),
               ),
-
-              /// MaterialPicker로 선택 버튼
               OutlinedButton.icon(
                 onPressed: _showMaterialPicker,
                 icon: Icon(Icons.color_lens, size: 18, color: p.textOnSheet),
@@ -324,8 +303,6 @@ class _TagEditorSheetState extends ConsumerState<_TagEditorSheet> {
             ],
           ),
           const SizedBox(height: 24),
-
-          /// 저장 버튼
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -340,7 +317,7 @@ class _TagEditorSheetState extends ConsumerState<_TagEditorSheet> {
                 ),
               ),
               child: Text(
-                _isEdit ? 'edit'.tr() : 'add'.tr(),
+                _isEdit ? 'change'.tr() : 'save'.tr(),
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -353,7 +330,6 @@ class _TagEditorSheetState extends ConsumerState<_TagEditorSheet> {
     );
   }
 
-  /// 프리셋 색상 선택 다이얼로그
   void _showPresetPicker() {
     final p = context.palette;
     showDialog(
@@ -364,9 +340,8 @@ class _TagEditorSheetState extends ConsumerState<_TagEditorSheet> {
         content: Wrap(
           spacing: 10,
           runSpacing: 10,
-          children: TodoColor.presets.map((color) {
-            final isSelected =
-                _selectedColor.toARGB32() == color.toARGB32();
+          children: HabitColor.presets.map((color) {
+            final isSelected = _selectedColor.value == color.value;
             return GestureDetector(
               onTap: () {
                 HapticFeedback.mediumImpact();
@@ -394,7 +369,6 @@ class _TagEditorSheetState extends ConsumerState<_TagEditorSheet> {
     );
   }
 
-  /// MaterialPicker 색상 선택 다이얼로그 (~190색)
   void _showMaterialPicker() {
     final p = context.palette;
     showDialog(
@@ -407,7 +381,6 @@ class _TagEditorSheetState extends ConsumerState<_TagEditorSheet> {
           onColorChanged: (color) {
             HapticFeedback.mediumImpact();
             setState(() => _selectedColor = color);
-            Navigator.pop(ctx);
           },
           enableLabel: false,
         ),
@@ -420,23 +393,19 @@ class _TagEditorSheetState extends ConsumerState<_TagEditorSheet> {
     if (name.isEmpty) return;
 
     HapticFeedback.mediumImpact();
-    final notifier = ref.read(tagListProvider.notifier);
+    final notifier = ref.read(categoryListProvider.notifier);
 
     if (_isEdit) {
-      /// 수정
-      final updated = widget.tag!.copyWith(
+      final updated = widget.category!.copyWith(
         name: name,
-        colorValue: _selectedColor.toARGB32(),
+        colorValue: _selectedColor.value,
       );
-      notifier.updateTag(updated);
+      notifier.updateCategory(updated);
     } else {
-      /// 신규 생성
-      final newTag = Tag(
-        id: notifier.nextId(),
+      notifier.createCategory(
         name: name,
-        colorValue: _selectedColor.toARGB32(),
+        colorValue: _selectedColor.value,
       );
-      notifier.addTag(newTag);
     }
 
     Navigator.pop(context);
