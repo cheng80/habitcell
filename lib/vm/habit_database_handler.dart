@@ -1,7 +1,14 @@
 // habit_database_handler.dart
 // SQLite 기반 습관 DB CRUD - docs/habit/sqlite_schema_v1.md 기반
+//
+// [핵심 정책]
+// - habits: 소프트 삭제(is_deleted), sort_order로 표시 순서
+// - habit_daily_logs: (habit_id, date) 유니크, count >= daily_target → 달성
+// - heatmap_daily_snapshots: 날짜별 "해당 시점에 존재했던 습관" 기준 달성률 (과거 데이터 정확도)
+// - 카테고리: habits.category_id NULL = "없음", 삭제 시 SET NULL
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
@@ -32,16 +39,17 @@ class HabitDatabaseHandler {
   /// DB 인스턴스 (싱글톤)
   static Future<Database> get database async {
     if (_db != null) return _db!;
-    _db = await _initDb();
+    _db = await _initDB();
     return _db!;
   }
 
-  static Future<Database> _initDb() async {
+  static Future<Database> _initDB() async {
     final dir = await getApplicationDocumentsDirectory();
     final path = join(dir.path, _dbName);
+    debugPrint('[HabitDB] db file: $path');
     return openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: (db, version) async {
         await db.execute('PRAGMA foreign_keys = ON');
         await db.execute('''
@@ -95,6 +103,15 @@ class HabitDatabaseHandler {
             updated_at TEXT NOT NULL
           )
         ''');
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS heatmap_daily_snapshots (
+            date TEXT PRIMARY KEY,
+            achieved INTEGER NOT NULL DEFAULT 0,
+            total INTEGER NOT NULL DEFAULT 0,
+            level INTEGER NOT NULL DEFAULT 0,
+            updated_at TEXT NOT NULL
+          )
+        ''');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
@@ -102,6 +119,17 @@ class HabitDatabaseHandler {
         }
         if (oldVersion < 3) {
           await db.execute('ALTER TABLE habits ADD COLUMN deadline_reminder_time TEXT DEFAULT NULL');
+        }
+        if (oldVersion < 5) {
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS heatmap_daily_snapshots (
+              date TEXT PRIMARY KEY,
+              achieved INTEGER NOT NULL DEFAULT 0,
+              total INTEGER NOT NULL DEFAULT 0,
+              level INTEGER NOT NULL DEFAULT 0,
+              updated_at TEXT NOT NULL
+            )
+          ''');
         }
         if (oldVersion < 4) {
           await db.execute('''
@@ -163,6 +191,16 @@ class HabitDatabaseHandler {
       'habits',
       where: 'is_deleted = ?',
       whereArgs: [0],
+      orderBy: 'sort_order ASC, updated_at DESC',
+    );
+    return rows.map((r) => Habit.fromMap(r)).toList();
+  }
+
+  /// 삭제 포함 전체 습관 (히트맵 스냅샷용)
+  Future<List<Habit>> getAllHabitsIncludingDeleted() async {
+    final db = await database;
+    final rows = await db.query(
+      'habits',
       orderBy: 'sort_order ASC, updated_at DESC',
     );
     return rows.map((r) => Habit.fromMap(r)).toList();
@@ -386,6 +424,22 @@ class HabitDatabaseHandler {
     return rows.map((r) => HabitDailyLog.fromMap(r)).toList();
   }
 
+  /// 날짜 범위 내 모든 습관의 일별 로그 조회 (통계/히트맵용)
+  /// [startDate], [endDate]: YYYY-MM-DD
+  Future<List<HabitDailyLog>> getLogsInDateRange(
+    String startDate,
+    String endDate,
+  ) async {
+    final db = await database;
+    final rows = await db.query(
+      'habit_daily_logs',
+      where: 'date >= ? AND date <= ? AND is_deleted = ?',
+      whereArgs: [startDate, endDate, 0],
+      orderBy: 'date ASC',
+    );
+    return rows.map((r) => HabitDailyLog.fromMap(r)).toList();
+  }
+
   /// upsert: habit_id + date 기준으로 count 갱신
   Future<void> upsertLog(String habitId, String date, int count) async {
     final now = _nowUtc();
@@ -472,6 +526,191 @@ class HabitDatabaseHandler {
   static String _dateToday() {
     final now = DateTime.now();
     return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+  }
+
+  // ========== heatmap_daily_snapshots ==========
+  // 년/전체 히트맵은 날짜별 "그날 존재했던 습관" 기준으로 달성률 계산해야 함.
+  // (나중에 추가된 습관은 과거 날짜에 포함 안 함, 삭제된 습관은 삭제일 이전만 포함)
+
+  /// 해당 날짜에 습관이 "활성"이었는지 (created_at <= date, 삭제 전)
+  static bool _wasActiveOnDate(Habit h, String date) {
+    final created = h.createdAt.length >= 10 ? h.createdAt.substring(0, 10) : h.createdAt;
+    if (created.compareTo(date) > 0) return false;
+    if (!h.isDeleted) return true;
+    final updated = h.updatedAt.length >= 10 ? h.updatedAt.substring(0, 10) : h.updatedAt;
+    return updated.compareTo(date) > 0;
+  }
+
+  /// 날짜별 달성률 계산 후 스냅샷 저장
+  /// 1) 해당 날짜에 존재했던 습관(_wasActiveOnDate) 기준으로 achieved/total 계산
+  /// 2) activeHabits 비어 있으면: 그날 로그가 있는 습관만 사용 (마이그레이션/백필용)
+  /// 3) level: achieved/total 비율을 1~4로 매핑 (0%→0, 1~25%→1, ...)
+  Future<void> computeAndSaveHeatmapSnapshot(String date) async {
+    final allHabits = await getAllHabitsIncludingDeleted();
+    var activeHabits = allHabits.where((h) => _wasActiveOnDate(h, date)).toList();
+
+    if (activeHabits.isEmpty) {
+      final logs = await getLogsInDateRange(date, date);
+      if (logs.isEmpty) return;
+      final habitIds = logs.map((l) => l.habitId).toSet().toList();
+      activeHabits = allHabits.where((h) => habitIds.contains(h.id)).toList();
+      if (activeHabits.isEmpty) return;
+    }
+
+    final logs = await getLogsInDateRange(date, date);
+    final logByHabit = {for (final l in logs) l.habitId: l};
+
+    var achieved = 0;
+    for (final h in activeHabits) {
+      final log = logByHabit[h.id];
+      if ((log?.count ?? 0) >= h.dailyTarget) achieved++;
+    }
+    final total = activeHabits.length;
+    final level = total == 0
+        ? 0
+        : achieved == 0
+            ? 0
+            : ((achieved / total) * 4).ceil().clamp(1, 4);
+
+    await upsertHeatmapSnapshot(date, achieved, total, level);
+  }
+
+  Future<void> upsertHeatmapSnapshot(String date, int achieved, int total, int level) async {
+    final now = _nowUtc();
+    final db = await database;
+    await db.insert(
+      'heatmap_daily_snapshots',
+      {
+        'date': date,
+        'achieved': achieved,
+        'total': total,
+        'level': level,
+        'updated_at': now,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getHeatmapSnapshots(String startDate, String endDate) async {
+    final db = await database;
+    final rows = await db.query(
+      'heatmap_daily_snapshots',
+      where: 'date >= ? AND date <= ?',
+      whereArgs: [startDate, endDate],
+      orderBy: 'date ASC',
+    );
+    return rows;
+  }
+
+  /// 앱 실행 시 어제까지 누락된 스냅샷 생성 (최대 365일 역순)
+  /// 스냅샷이 이미 있는 날을 만나면 중단 (연속 구간만 채움)
+  Future<void> ensureYesterdaySnapshot() async {
+    final db = await database;
+    final today = DateTime.now();
+    final yesterday = today.subtract(const Duration(days: 1));
+
+    var d = yesterday;
+    for (var i = 0; i < 365; i++) {
+      final dateStr =
+          '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+      final rows = await db.query(
+        'heatmap_daily_snapshots',
+        where: 'date = ?',
+        whereArgs: [dateStr],
+      );
+      if (rows.isNotEmpty) break;
+      await computeAndSaveHeatmapSnapshot(dateStr);
+      d = d.subtract(const Duration(days: 1));
+    }
+  }
+
+  /// 개발용: 모든 습관 및 로그 일괄 삭제
+  Future<void> deleteAllHabitsAndLogs() async {
+    final db = await database;
+    await db.delete('habit_daily_logs');
+    await db.delete('heatmap_daily_snapshots');
+    await db.delete('habits');
+  }
+
+  /// 개발용: 현재 날짜 기준 1년 반(548일)치 더미 데이터 삽입
+  /// [알고리즘] achievedPerDay: 사인파 + 노이즈로 0~nHabits 분포 생성
+  /// [정책] toAchieve개 습관만 달성, 나머지는 target 미만으로 설정
+  /// [정책] 카테고리: 0~9=해당 카테고리, -1=없음(미분류)
+  static const int _dummyDataDays = 548; // 1.5년
+
+  Future<void> insertDummyData() async {
+    final rand = Random();
+    final today = _dateToday();
+    final todayDt = DateTime.parse(today);
+
+    final categories = await getAllCategories();
+    final categoryIds = categories.map((c) => c.id).toList();
+
+    final dummyHabits = [
+      ('물 8잔 마시기', 8, 0),   // 건강
+      ('25분 집중 타임', 1, 1),  // 집중
+      ('30분 독서', 1, 2),      // 독서
+      ('10분 스트레칭', 1, 3),  // 운동
+      ('명상 5분', 1, 4),      // 명상
+      ('수면 7시간', 1, 5),     // 수면
+      ('식단 기록', 1, 6),      // 식습관
+      ('영어 단어 10개', 1, 7), // 학습
+      ('그림 그리기', 1, 8),    // 취미
+      ('기타 실천', 1, 9),      // 기타
+      ('미분류 습관', 1, -1),   // 없음
+    ];
+
+    // 날짜별 달성 습관 수: 사인파 + 노이즈로 그라데이션 (습관 수에 맞게 조정)
+    final nHabits = dummyHabits.length;
+    final achievedPerDay = List<int>.generate(_dummyDataDays, (d) {
+      final wave = (nHabits * 0.4 + nHabits * 0.4 * (1 + sin(d * 0.02))).round();
+      final noise = rand.nextInt(3) - 1;
+      return (wave + noise).clamp(0, nHabits);
+    });
+
+    final habits = <String, int>{}; // habitId -> dailyTarget
+    for (var i = 0; i < dummyHabits.length; i++) {
+      final (title, target, catIdx) = dummyHabits[i];
+      final categoryId = catIdx >= 0 && catIdx < categoryIds.length
+          ? categoryIds[catIdx]
+          : null;
+      final habit = await createHabit(
+        title: title,
+        dailyTarget: target,
+        sortOrder: i,
+        categoryId: categoryId,
+      );
+      habits[habit.id] = target;
+    }
+
+    final habitIds = habits.keys.toList();
+    final n = habitIds.length;
+
+    for (var d = 0; d < _dummyDataDays; d++) {
+      final date = todayDt.subtract(Duration(days: d));
+      final dateStr =
+          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+      final toAchieve = achievedPerDay[d].clamp(0, n);
+
+      // toAchieve개 습관을 달성, 나머지는 미달성
+      final indices = List.generate(n, (i) => i)..shuffle(rand);
+      for (var i = 0; i < n; i++) {
+        final habitId = habitIds[indices[i]];
+        final target = habits[habitId]!;
+        final count = i < toAchieve
+            ? target + (rand.nextDouble() < 0.3 ? rand.nextInt(2) : 0)
+            : rand.nextInt(target).clamp(0, target > 0 ? target - 1 : 0);
+        await upsertLog(habitId, dateStr, count);
+      }
+    }
+
+    // 히트맵 스냅샷 생성 (년/전체 뷰용)
+    for (var d = 0; d < _dummyDataDays; d++) {
+      final date = todayDt.subtract(Duration(days: d));
+      final dateStr =
+          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+      await computeAndSaveHeatmapSnapshot(dateStr);
+    }
   }
 
   // ========== app_settings ==========

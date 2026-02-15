@@ -95,5 +95,13 @@ class AppStorage {
   static Future<void> setPreReminderEnabled(bool enabled) =>
       _storage.write(_keyPreReminder, enabled);
 
-  // ─── 추후 설정 추가 시 여기에 ────────────────────
+  // ─── 히트맵 테마 ─────────────────────────────────
+  static const String _keyHeatmapTheme = 'heatmap_theme';
+
+  /// 잔디 색상 테마 (github, ocean, sunset, lavender, mint, rose, monochrome)
+  static String getHeatmapTheme() =>
+      _storage.read<String>(_keyHeatmapTheme) ?? 'github';
+
+  static Future<void> saveHeatmapTheme(String theme) =>
+      _storage.write(_keyHeatmapTheme, theme);
 }

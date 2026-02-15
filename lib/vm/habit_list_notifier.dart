@@ -1,7 +1,9 @@
 // habit_list_notifier.dart
 // 습관 목록 Riverpod Notifier - HabitDatabaseHandler 기반
 //
-// 습관 CRUD, +1/-1 (오늘 count) 제공
+// [역할] 습관 CRUD, +1/-1 (오늘 count), 완료 토글, 순서 변경
+// [정책] createHabit 시 sort_order = 기존 최대값+1 (맨 뒤 추가)
+// [정책] deleteHabit → 소프트 삭제, habitListProvider 무효화로 heatmap/stats 연쇄 갱신
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitcell/model/habit.dart';
@@ -78,6 +80,18 @@ class HabitListNotifier extends AsyncNotifier<List<HabitWithTodayCount>> {
 
   /// 수동 새로고침
   void reloadData() {
+    ref.invalidateSelf();
+  }
+
+  /// 개발용: 더미 데이터 삽입
+  Future<void> insertDummyData() async {
+    await _dbHandler.insertDummyData();
+    ref.invalidateSelf();
+  }
+
+  /// 개발용: 모든 습관 및 로그 일괄 삭제
+  Future<void> deleteAllHabitsAndLogs() async {
+    await _dbHandler.deleteAllHabitsAndLogs();
     ref.invalidateSelf();
   }
 }

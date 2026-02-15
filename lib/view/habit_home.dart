@@ -1,5 +1,9 @@
 // habit_home.dart
 // 홈 탭 - 습관 목록, +1/-1, CRUD (MainScaffold의 body로 사용)
+//
+// [필터 정책] all=전체, completed=count>=target, uncompleted=미달성
+// [정렬] completed 토글 시 맨 아래 이동(DB sort_order), "전체"에서만 드래그 핸들 표시
+// [정책] 필터 결과 없어도 날짜·필터 버튼은 항상 표시 (다른 필터로 전환 가능)
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -61,15 +65,12 @@ class _HabitHomeState extends ConsumerState<HabitHome> {
           _HabitFilter.uncompleted => items.where((e) => !e.isCompleted).toList(),
         };
 
-        if (filteredItems.isEmpty) {
-          return _buildFilteredEmptyState(p, _filter);
-        }
-
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              padding: const EdgeInsets.fromLTRB(
+                ConfigUI.screenPaddingH, 16, ConfigUI.screenPaddingH, 8),
               child: Row(
                 children: [
                   Text(
@@ -89,7 +90,8 @@ class _HabitHomeState extends ConsumerState<HabitHome> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: p.textPrimary,
                       side: BorderSide(color: p.divider),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+          horizontal: ConfigUI.chipPaddingHCompact, vertical: ConfigUI.chipPaddingV),
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
@@ -104,7 +106,8 @@ class _HabitHomeState extends ConsumerState<HabitHome> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: p.textPrimary,
                       side: BorderSide(color: p.divider),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+          horizontal: ConfigUI.chipPaddingHCompact, vertical: ConfigUI.chipPaddingV),
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
@@ -114,7 +117,8 @@ class _HabitHomeState extends ConsumerState<HabitHome> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+              padding: const EdgeInsets.fromLTRB(
+                ConfigUI.screenPaddingH, 0, ConfigUI.screenPaddingH, 12),
               child: Row(
                 spacing: 8,
                 children: [
@@ -149,7 +153,9 @@ class _HabitHomeState extends ConsumerState<HabitHome> {
               ),
             ),
             Expanded(
-              child: CustomScrollView(
+              child: filteredItems.isEmpty
+                  ? _buildFilteredEmptyState(p, _filter)
+                  : CustomScrollView(
                 slivers: [
                   if (_filter == _HabitFilter.all)
                     SliverReorderableList(
@@ -329,7 +335,8 @@ class _FilterChip extends StatelessWidget {
         fontSize: 13,
       ),
       backgroundColor: palette.chipUnselectedBg,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+          horizontal: ConfigUI.chipPaddingHCompact, vertical: ConfigUI.chipPaddingV),
       showCheckmark: false,
     );
   }
@@ -343,7 +350,7 @@ Widget _buildFilteredEmptyState(AppColorScheme p, _HabitFilter filter) {
   };
   return Center(
     child: Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(ConfigUI.paddingEmptyState),
       child: Text(
         message,
         style: TextStyle(color: p.textSecondary, fontSize: 16),
@@ -355,7 +362,7 @@ Widget _buildFilteredEmptyState(AppColorScheme p, _HabitFilter filter) {
 Widget _buildEmptyState(AppColorScheme p) {
   return Center(
     child: Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(ConfigUI.paddingEmptyState),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         spacing: 8,

@@ -1,5 +1,9 @@
 // habit_edit_sheet.dart
 // HabitEditSheet - 습관 생성/수정 BottomSheet
+//
+// [모드] update==null → 생성, update!=null → 수정
+// [제약] title 필수, daily_target 1~99
+// [마감 알림] 오늘 기준 minimum=현재+5분, maximum=23:59 (과거 시간 방지)
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';

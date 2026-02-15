@@ -1,6 +1,10 @@
 // habit_item.dart
 // 습관 아이템 - "하루 한 칸" (Ticka 스타일)
-// 6칸 기준 그리드, 탭으로 채우기/되돌리기, 완료 버튼
+//
+// [레이아웃] 6열 그리드, daily_target만큼 칸 표시, 탭으로 +1/-1
+// [달성] count >= daily_target → 시각 변화, 완료 버튼 표시
+// [완료 토글] count >= target일 때만, 토글 시 sort_order 맨 뒤로 (DB)
+// [카테고리] categoryId 있으면 상단 바 색상, 없으면 미표시
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,10 +18,6 @@ import 'package:habitcell/vm/category_list_notifier.dart';
 import 'package:habitcell/vm/habit_database_handler.dart';
 import 'package:habitcell/vm/habit_list_notifier.dart';
 
-const int _gridColumns = 6;
-const double _cellSizeMin = 36.0;
-const double _cellSizeMax = 52.0;
-const double _cellSpacing = 8.0;
 
 class HabitItem extends ConsumerWidget {
   final HabitWithTodayCount item;
@@ -257,13 +257,13 @@ class _CompleteButton extends StatelessWidget {
       color: isCompleted
           ? palette.primary.withValues(alpha: 0.2)
           : palette.primary.withValues(alpha: 0.12),
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: ConfigUI.buttonRadius,
       child: InkWell(
         onTap: () {
-          HapticFeedback.mediumImpact();
+          HapticFeedback.heavyImpact();
           onToggle();
         },
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: ConfigUI.buttonRadius,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           child: Row(
@@ -279,7 +279,7 @@ class _CompleteButton extends StatelessWidget {
                 '완료',
                 style: TextStyle(
                   color: palette.primary,
-                  fontSize: 15,
+                  fontSize: ConfigUI.fontSizeButton,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -313,17 +313,20 @@ class _CellGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final cols = ConfigUI.habitCardGridColumns;
+        final spacing = ConfigUI.habitCardCellSpacing;
         final availableWidth = constraints.maxWidth.isFinite
             ? constraints.maxWidth
-            : _gridColumns * _cellSizeMax + (_gridColumns - 1) * _cellSpacing;
+            : cols * ConfigUI.habitCardCellSizeMax + (cols - 1) * spacing;
         final idealCellSize =
-            (availableWidth - (_gridColumns - 1) * _cellSpacing) / _gridColumns;
-        final cellSize = idealCellSize.clamp(_cellSizeMin, _cellSizeMax);
+            (availableWidth - (cols - 1) * spacing) / cols;
+        final cellSize = idealCellSize.clamp(
+            ConfigUI.habitCardCellSizeMin, ConfigUI.habitCardCellSizeMax);
         return Wrap(
           alignment: WrapAlignment.start,
           runAlignment: WrapAlignment.start,
-          spacing: _cellSpacing,
-          runSpacing: _cellSpacing,
+          spacing: spacing,
+          runSpacing: spacing,
           children: List.generate(target, (i) {
             final filled = i < count;
             final isNextToFill = i == count && count < target;
@@ -335,7 +338,10 @@ class _CellGrid extends StatelessWidget {
                 behavior: HitTestBehavior.opaque,
                 onTap: () {
                   if (isNextToFill) {
-                    HapticFeedback.mediumImpact();
+                    // 목표 달성 시(마지막 칸) 더 강한 진동
+                    (count + 1 == target
+                        ? HapticFeedback.heavyImpact
+                        : HapticFeedback.mediumImpact)();
                     onFill();
                   } else if (canUnfill) {
                     HapticFeedback.mediumImpact();
@@ -348,7 +354,7 @@ class _CellGrid extends StatelessWidget {
                     color: filled
                         ? palette.primary.withValues(alpha: 0.25)
                         : palette.cardBackground,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: ConfigUI.inputRadius,
                     border: Border.all(
                       color: filled ? palette.primary : palette.divider,
                       width: filled ? 1.5 : 1,

@@ -108,6 +108,7 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
 
   Future<void> _performInitialCleanup() async {
     try {
+      await HabitDatabaseHandler().ensureYesterdaySnapshot();
       await _notificationService.clearBadge();
       if (AppStorage.getPreReminderEnabled()) {
         await _notificationService.schedulePreReminders();

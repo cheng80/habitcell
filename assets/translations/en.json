@@ -1,5 +1,11 @@
 {
   "dummyData": "Insert dummy data",
+  "dummyDataInsert": "Insert dummy data",
+  "dummyDataInsertMessage": "Insert 1.5 years (548 days) of dummy data from today. Continue?",
+  "dummyDataInserted": "Dummy data has been inserted.",
+  "deleteAllData": "Delete all data",
+  "deleteAllDataMessage": "All habits and logs will be deleted. Are you sure?",
+  "deleteAllDataDone": "All data has been deleted.",
   "search": "Search",
   "dueDateFilterOn": "With due date only",
   "dueDateFilterOff": "All",
@@ -96,5 +102,18 @@
   "collapseAll": "Collapse all",
   "expandAll": "Expand all",
   "filterEmptyCompleted": "No completed habits",
-  "filterEmptyUncompleted": "No uncompleted habits"
+  "filterEmptyUncompleted": "No uncompleted habits",
+  "stats7d": "Last 7 days",
+  "stats30d": "Last 30 days",
+  "statsStreak": "Streak",
+  "statsEmpty": "Add habits to see statistics",
+  "statsAllAchieved": "All achieved",
+  "heatmapTheme": "Heatmap theme",
+  "heatmapTheme_github": "GitHub",
+  "heatmapTheme_ocean": "Ocean",
+  "heatmapTheme_sunset": "Sunset",
+  "heatmapTheme_lavender": "Lavender",
+  "heatmapTheme_mint": "Mint",
+  "heatmapTheme_rose": "Rose",
+  "heatmapTheme_monochrome": "Monochrome"
 }

@@ -1,10 +1,11 @@
 // notification_service.dart
 // 로컬 알람 - 습관 리마인드용 (추후 Habit reminder_time 연동)
 //
-// [기능]
-// - 앱 아이콘 배지: 예약된 알람 개수 표시 (app_badge_plus)
-// - 앱 진입 시 배지 제거 (읽음 처리)
-// - scheduleNotification, cleanupExpiredNotifications: Habit 연동 시 구현
+// [현재 기능]
+// - 앱 아이콘 배지: 예약된 알람 개수 (app_badge_plus), 앱 진입 시 clearBadge
+// - 마감 알림: deadline_reminder_time 기반 예약 (Habit별)
+// - 타임존: Asia/Seoul 고정 (IANA ID, GPS 아님)
+// [추후] reminder_time 연동, 달성 시 알림 자동 취소
 
 import 'dart:math';
 
@@ -249,6 +250,16 @@ class NotificationService {
   /// 알람 탭 시 콜백 (추후 딥링크 등 확장 가능)
   void _onNotificationTapped(NotificationResponse response) {
     debugPrint('[Notification] 알람 탭됨: id=${response.id}');
+  }
+
+  /// 예약된 알람 목록 반환 (출력 없음)
+  Future<List<PendingNotificationRequest>> getPendingNotifications() async {
+    try {
+      return await _notifications.pendingNotificationRequests();
+    } catch (e) {
+      debugPrint('[Notification] 알람 목록 조회 오류: $e');
+      return [];
+    }
   }
 
   /// 등록된 알람 목록 확인 (디버깅용)

@@ -1,5 +1,9 @@
 // pre_reminder_notifier.dart
 // 미리 알림 (점심/저녁 푸시) 설정
+//
+// [정의] 습관별 마감 알림과 별개, "오늘 할 일 있음" 리마인드용
+// [저장] AppStorage pre_reminder_enabled
+// [동작] ON → schedulePreReminders, OFF → cancelPreReminders
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

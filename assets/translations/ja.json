@@ -1,5 +1,11 @@
 {
   "dummyData": "ダミーデータ生成",
+  "dummyDataInsert": "ダミーデータ挿入",
+  "dummyDataInsertMessage": "今日を基準に1年半(548日)分のダミーデータを挿入します。続行しますか？",
+  "dummyDataInserted": "ダミーデータが挿入されました。",
+  "deleteAllData": "データ一括削除",
+  "deleteAllDataMessage": "すべての習慣と記録が削除されます。本当に削除しますか？",
+  "deleteAllDataDone": "すべてのデータが削除されました。",
   "search": "検索",
   "dueDateFilterOn": "期限ありのみ",
   "dueDateFilterOff": "すべて",
@@ -96,5 +102,18 @@
   "collapseAll": "一括で折りたたむ",
   "expandAll": "一括で展開",
   "filterEmptyCompleted": "完了した習慣がありません",
-  "filterEmptyUncompleted": "未完了の習慣がありません"
+  "filterEmptyUncompleted": "未完了の習慣がありません",
+  "stats7d": "過去7日",
+  "stats30d": "過去30日",
+  "statsStreak": "連続",
+  "statsEmpty": "習慣を追加すると統計が表示されます",
+  "statsAllAchieved": "全て達成",
+  "heatmapTheme": "ヒートマップテーマ",
+  "heatmapTheme_github": "GitHub",
+  "heatmapTheme_ocean": "Ocean",
+  "heatmapTheme_sunset": "Sunset",
+  "heatmapTheme_lavender": "Lavender",
+  "heatmapTheme_mint": "Mint",
+  "heatmapTheme_rose": "Rose",
+  "heatmapTheme_monochrome": "Monochrome"
 }

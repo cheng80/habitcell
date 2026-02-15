@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:habitcell/theme/app_colors.dart';
+import 'package:habitcell/theme/config_ui.dart';
 
 /// 최상위 ScaffoldMessenger에 접근하기 위한 글로벌 키.
 /// MaterialApp의 messengerKey에 연결하면, 여러 컨텍스트에서 스낵바를
@@ -9,7 +10,7 @@ final GlobalKey<ScaffoldMessengerState> rootMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
 /// 최상위 Overlay에 접근하기 위한 글로벌 키.
-/// 바텀시트 위로도 표시되는 커스텀 스낵바에 사용합니다.
+/// showOverlaySnackBar: 바텀시트/드로어 위에 표시 (root overlay insert)
 final GlobalKey<NavigatorState> rootNavigatorKey =
     GlobalKey<NavigatorState>();
 
@@ -50,7 +51,7 @@ void showCommonSnackBar(
 }
 
 /// Overlay 기반 커스텀 스낵바.
-/// 바텀시트/다이얼로그 위에 표시됩니다.
+/// rootNavigatorKey.currentState?.overlay에 insert → 드로어/바텀시트 위에 표시
 void showOverlaySnackBar(
   BuildContext context, {
   required String message,
@@ -140,10 +141,11 @@ class _OverlaySnackBarState extends State<_OverlaySnackBar>
       child: Material(
         color: Colors.transparent,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(
+              horizontal: ConfigUI.paddingCard, vertical: 12),
           decoration: BoxDecoration(
             color: widget.backgroundColor,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: ConfigUI.buttonRadius,
             boxShadow: const [
               BoxShadow(
                 color: Colors.black26,

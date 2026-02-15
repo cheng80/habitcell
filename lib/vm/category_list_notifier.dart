@@ -1,5 +1,8 @@
 // category_list_notifier.dart
 // 카테고리 목록 Riverpod Notifier
+//
+// [정책] createCategory 시 sort_order = 기존 개수 (맨 뒤)
+// [정책] deleteCategory 시 habits.category_id → NULL (ON DELETE SET NULL)
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitcell/model/category.dart';

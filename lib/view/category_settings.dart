@@ -353,7 +353,7 @@ class _CategoryEditorSheetState extends ConsumerState<_CategoryEditorSheet> {
                 height: 40,
                 decoration: BoxDecoration(
                   color: color,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: ConfigUI.inputRadius,
                   border: isSelected
                       ? Border.all(color: p.textOnSheet, width: 3)
                       : null,
