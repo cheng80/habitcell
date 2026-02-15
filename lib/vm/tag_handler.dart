@@ -3,8 +3,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:tagdo/model/tag.dart';
-import 'package:tagdo/util/app_locale.dart';
+import 'package:habitcell/model/tag.dart';
+import 'package:habitcell/util/app_locale.dart';
 
 /// 기본 태그 색상 (이름은 locale별)
 const List<Color> _defaultColors = [

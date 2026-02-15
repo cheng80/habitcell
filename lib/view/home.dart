@@ -8,18 +8,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // HapticFeedback 사용을 위해 추가
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:showcaseview/showcaseview.dart';
-import 'package:tagdo/model/todo.dart'; // Todo 데이터 모델
-import 'package:tagdo/theme/app_colors.dart';
-import 'package:tagdo/theme/config_ui.dart';
-import 'package:tagdo/util/app_storage.dart';
-import 'package:tagdo/util/common_util.dart';
-import 'package:tagdo/view/todo_item.dart';
-import 'package:tagdo/view/sheets/todo_delete_sheet.dart';
-import 'package:tagdo/view/sheets/todo_edit_sheet.dart';
-import 'package:tagdo/view/app_drawer.dart';
-import 'package:tagdo/view/home_widgets.dart';
-import 'package:tagdo/vm/todo_list_notifier.dart';
-import 'package:tagdo/vm/home_filter_notifier.dart';
+import 'package:habitcell/model/todo.dart'; // Todo 데이터 모델
+import 'package:habitcell/theme/app_colors.dart';
+import 'package:habitcell/theme/config_ui.dart';
+import 'package:habitcell/util/app_storage.dart';
+import 'package:habitcell/util/common_util.dart';
+import 'package:habitcell/view/todo_item.dart';
+import 'package:habitcell/view/sheets/todo_delete_sheet.dart';
+import 'package:habitcell/view/sheets/todo_edit_sheet.dart';
+import 'package:habitcell/view/app_drawer.dart';
+import 'package:habitcell/view/home_widgets.dart';
+import 'package:habitcell/vm/todo_list_notifier.dart';
+import 'package:habitcell/vm/home_filter_notifier.dart';
 
 /// TodoHome - Riverpod 기반 메인 화면
 ///

@@ -5,19 +5,19 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tagdo/model/todo.dart';
-import 'package:tagdo/service/in_app_review_service.dart';
-import 'package:tagdo/service/notification_service.dart';
-import 'package:tagdo/theme/app_colors.dart';
-import 'package:tagdo/util/app_storage.dart';
-import 'package:tagdo/util/common_util.dart';
-import 'package:tagdo/theme/config_ui.dart';
+import 'package:habitcell/model/todo.dart';
+import 'package:habitcell/service/in_app_review_service.dart';
+import 'package:habitcell/service/notification_service.dart';
+import 'package:habitcell/theme/app_colors.dart';
+import 'package:habitcell/util/app_storage.dart';
+import 'package:habitcell/util/common_util.dart';
+import 'package:habitcell/theme/config_ui.dart';
 import 'package:showcaseview/showcaseview.dart';
-import 'package:tagdo/view/sheets/todo_edit_sheet.dart';
-import 'package:tagdo/view/tag_settings.dart';
-import 'package:tagdo/vm/theme_notifier.dart';
-import 'package:tagdo/vm/todo_list_notifier.dart';
-import 'package:tagdo/vm/wakelock_notifier.dart';
+import 'package:habitcell/view/sheets/todo_edit_sheet.dart';
+import 'package:habitcell/view/tag_settings.dart';
+import 'package:habitcell/vm/theme_notifier.dart';
+import 'package:habitcell/vm/todo_list_notifier.dart';
+import 'package:habitcell/vm/wakelock_notifier.dart';
 
 /// AppDrawer - 설정 및 부가 기능을 위한 사이드 메뉴
 ///

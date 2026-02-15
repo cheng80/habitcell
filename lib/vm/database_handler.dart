@@ -3,7 +3,7 @@
 
 
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:tagdo/model/todo.dart';
+import 'package:habitcell/model/todo.dart';
 
 /// DatabaseHandler - Hive Box를 통한 Todo CRUD 연산을 담당하는 클래스
 ///

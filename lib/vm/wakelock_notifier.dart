@@ -3,7 +3,7 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tagdo/util/app_storage.dart';
+import 'package:habitcell/util/app_storage.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 /// 화면 꺼짐 방지 상태를 관리하는 Notifier

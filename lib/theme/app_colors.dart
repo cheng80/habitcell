@@ -2,7 +2,7 @@
 //
 // 사용 예시:
 // ```dart
-// import 'package:tagdo/theme/app_colors.dart';
+// import 'package:habitcell/theme/app_colors.dart';
 //
 // final p = context.palette;
 // Container(color: p.background)

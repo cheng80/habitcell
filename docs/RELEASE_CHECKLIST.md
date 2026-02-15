@@ -4,12 +4,12 @@
 
 ---
 
-## TagDo 전용
+## HabitCell 전용
 
 | 항목 | 값 |
 |------|-----|
-| Bundle ID (iOS) | `com.cheng80.tagdo` |
-| applicationId (Android) | `com.cheng80.tagdo` |
+| Bundle ID (iOS) | `com.cheng80.habitcell` |
+| applicationId (Android) | `com.cheng80.habitcell` |
 | 카테고리 | 생산성 (Productivity) |
 
 ---

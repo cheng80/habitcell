@@ -10,18 +10,18 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:tagdo/model/tag.dart';
-import 'package:tagdo/model/todo.dart';
-import 'package:tagdo/service/notification_service.dart';
-import 'package:tagdo/util/common_util.dart';
-import 'package:tagdo/view/home.dart';
-import 'package:tagdo/service/in_app_review_service.dart';
-import 'package:tagdo/util/app_locale.dart';
-import 'package:tagdo/util/app_storage.dart';
+import 'package:habitcell/model/tag.dart';
+import 'package:habitcell/model/todo.dart';
+import 'package:habitcell/service/notification_service.dart';
+import 'package:habitcell/util/common_util.dart';
+import 'package:habitcell/view/home.dart';
+import 'package:habitcell/service/in_app_review_service.dart';
+import 'package:habitcell/util/app_locale.dart';
+import 'package:habitcell/util/app_storage.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:tagdo/vm/theme_notifier.dart';
-import 'package:tagdo/vm/todo_list_notifier.dart';
+import 'package:habitcell/vm/theme_notifier.dart';
+import 'package:habitcell/vm/todo_list_notifier.dart';
 
 Future<void> _initDateFormats() async {
   await Future.wait([

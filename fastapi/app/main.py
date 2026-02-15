@@ -1,8 +1,6 @@
 """
-Table Now FastAPI 메인 애플리케이션
-기본 구조만 포함하며, 엔드포인트는 나중에 추가할 수 있도록 설계
-작성일: 2026-01-15
-작성자: 김택권
+Habit App FastAPI 백엔드
+습관 앱 백업/복구 API (Local-first + Snapshot Backup)
 """
 
 from fastapi import FastAPI
@@ -11,16 +9,12 @@ from dotenv import load_dotenv
 import os
 
 # .env 파일에서 환경변수 로드
-# fastapi 폴더의 .env 파일을 읽습니다
 env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
 load_dotenv(dotenv_path=env_path)
 
-# 데이터베이스 연결 (필요시 주석 해제)
-# from app.database.connection import connect_db
-
 app = FastAPI(
-    title="Table Now API",
-    description="Table Now 애플리케이션을 위한 REST API",
+    title="Habit App API",
+    description="습관 앱 백업/복구를 위한 REST API",
     version="1.0.0"
 )
 
@@ -34,48 +28,17 @@ app.add_middleware(
 )
 
 # ============================================
-# 라우터 등록
+# 라우터 등록 (습관앱 API는 추후 추가)
 # ============================================
-# 엔드포인트를 추가할 때 아래와 같이 라우터를 등록하세요:
-#
-# from app.api import example_router
-# app.include_router(example_router.router, prefix="/api/example", tags=["example"])
-
-# API 라우터 import 및 등록
-from app.api import customer, weather, menu, option, store, reserve, store_table, push_debug, payment
-
-# Customer API 라우터 등록
-app.include_router(customer.router, prefix="/api/customer", tags=["customer"])
-
-# Weather API 라우터 등록
-app.include_router(weather.router, prefix="/api/weather", tags=["weather"])
-
-# Menu API 라우터 등록 : 임소연
-app.include_router(menu.router, prefix="/api/menu", tags=["menu"])
-
-# Option API 라우터 등록 : 임소연
-app.include_router(option.router, prefix="/api/option", tags=["option"])
-
-# Store API 라우터 등록 : 유다원
-app.include_router(store.router, prefix="/api/store", tags=["store"])
-
-# Reserve API 라우터 등록 : 유다원
-app.include_router(reserve.router, prefix="/api/reserve", tags=["reserve"])
-
-# Pay API 라우터 등록 : 이광태
-app.include_router(payment.router, prefix="/api/pay", tags=["pay"])
-
-# StoreTable API 라우터 등록 : 이예은
-app.include_router(store_table.router, prefix="/api/store_table", tags=["store_table"])
-
-# Push Debug API 라우터 등록 (테스트용) : 김택권
-app.include_router(push_debug.router, prefix="/api", tags=["push_debug"])
+# from app.api import recovery, backups
+# app.include_router(recovery.router, prefix="/v1/recovery", tags=["recovery"])
+# app.include_router(backups.router, prefix="/v1/backups", tags=["backups"])
 
 @app.get("/")
 async def root():
     """루트 엔드포인트 - API 정보 반환"""
     return {
-        "message": "Table Now API",
+        "message": "Habit App API",
         "status": "running",
         "version": "1.0.0",
         "endpoints": {
@@ -106,40 +69,3 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
-
-# ============================================================
-# 생성 이력
-# ============================================================
-# 작성일: 2026-01-15
-# 작성자: 김택권
-# 설명: Table Now FastAPI 메인 애플리케이션 - FastAPI 앱 초기화 및 라우터 등록
-#
-# ============================================================
-# 수정 이력
-# ============================================================
-# 2026-01-15 김택권: 초기 생성
-#   - FastAPI 앱 초기화 및 기본 설정
-#   - CORS 미들웨어 설정 (Flutter 앱과 통신을 위해)
-#   - .env 파일에서 환경변수 로드 (dotenv)
-#   - Customer API 라우터 등록 (/api/customer)
-#   - 루트 엔드포인트 및 헬스 체크 엔드포인트 구현
-#
-# 2026-01-15 김택권: Weather API 라우터 등록
-#   - Weather API 라우터 등록 (/api/weather)
-#   - 날씨 데이터 조회 및 OpenWeatherMap API 연동 기능 추가
-#
-# 2026-01-15 임소연: Menu 및 Option API 라우터 등록
-#   - Menu API 라우터 등록 (/api/menu)
-#   - Option API 라우터 등록 (/api/option)
-#
-# 2026-01-15 유다원: Store 및 Reserve API 라우터 등록
-#   - Store API 라우터 등록 (/api/store)
-#   - Reserve API 라우터 등록 (/api/reserve)
-#
-# 2026-01-16 이예은: StoreTable API 라우터 등록
-#   - StoreTable API 라우터 등록 (/api/store_table)
-#
-# 2026-01-17 김택권: Push Debug API 라우터 등록
-#   - Push Debug API 라우터 등록 (/api/debug/push)
-#   - FCM 단발 푸시 테스트용 엔드포인트 추가

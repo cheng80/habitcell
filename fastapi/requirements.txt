@@ -4,18 +4,11 @@ uvicorn[standard]>=0.24.0
 pydantic>=2.5.0
 python-multipart>=0.0.6  # Form 데이터 및 파일 업로드 처리
 
-# 데이터베이스 (pymysql 직접 사용)
+# 데이터베이스 (habit_app_db)
 pymysql>=1.1.0
 
 # 유틸리티
-python-dotenv>=1.0.0  # 환경변수 관리 (선택사항)
-requests>=2.31.0  # HTTP 요청 (OpenWeatherMap API 호출용)
-
-# Firebase
-firebase-admin>=6.0.0  # FCM 푸시 알림 발송용
-
-# 암호화 (Payment API용)
-pycryptodome>=3.19.0  # AES 암호화 (Crypto.Cipher 사용)
+python-dotenv>=1.0.0  # 환경변수 관리
 
 # 개발 도구 (선택사항)
 pytest>=7.4.3

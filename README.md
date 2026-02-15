@@ -1,12 +1,12 @@
-# TagDo
+# HabitCell
 
-태그 기반 할 일 앱. 태그 분류, 마감일·알림, 검색, 드래그 정렬을 지원한다.
+습관 추적 앱. 일별 기록, 히트맵(잔디 스타일), Streak, 백업/복구를 지원한다.
 
 ### 대표 이미지
 
-| 메인 화면 | 태그 관리 | 새 할 일 |
+| 메인 화면 | 습관 관리 | 히트맵 |
 |:---------:|:---------:|:---------:|
-| ![메인](docs/screensshots/TagDo_ScreenShot_01.png) | ![태그 관리](docs/screensshots/TagDo_ScreenShot_08.png) | ![새 할 일](docs/screensshots/TagDo_ScreenShot_12.png) |
+| (준비 중) | (준비 중) | (준비 중) |
 
 ---
 

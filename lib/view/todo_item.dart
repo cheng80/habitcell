@@ -7,14 +7,14 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tagdo/model/tag.dart';
-import 'package:tagdo/model/todo.dart';
-import 'package:tagdo/theme/app_colors.dart';
-import 'package:tagdo/theme/config_ui.dart';
-import 'package:tagdo/vm/todo_list_notifier.dart';
-import 'package:tagdo/vm/tag_list_notifier.dart';
-import 'package:tagdo/vm/tag_handler.dart';
-import 'package:tagdo/vm/home_filter_notifier.dart';
+import 'package:habitcell/model/tag.dart';
+import 'package:habitcell/model/todo.dart';
+import 'package:habitcell/theme/app_colors.dart';
+import 'package:habitcell/theme/config_ui.dart';
+import 'package:habitcell/vm/todo_list_notifier.dart';
+import 'package:habitcell/vm/tag_list_notifier.dart';
+import 'package:habitcell/vm/tag_handler.dart';
+import 'package:habitcell/vm/home_filter_notifier.dart';
 
 class TodoItem extends ConsumerWidget {
   final Todo todo;

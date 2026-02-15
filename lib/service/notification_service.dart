@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:app_badge_plus/app_badge_plus.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:tagdo/model/todo.dart';
+import 'package:habitcell/model/todo.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -28,8 +28,8 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
   bool _isInitialized = false;
-  static const String _channelId = 'tagdo_alarm_channel';
-  static const String _channelName = 'TagDo 알람';
+  static const String _channelId = 'habitcell_alarm_channel';
+  static const String _channelName = 'HabitCell 알람';
   static const String _channelDescription = '할 일 마감 알림';
 
   /// 알람 서비스 초기화 (앱 시작 시 main에서 1회 호출)

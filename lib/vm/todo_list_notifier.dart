@@ -5,11 +5,11 @@
 // [튜토리얼] createTutorialTodoIfNeeded: 앱 최초 설치 시 5분 후 알람 할 일 1개 생성
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tagdo/model/todo.dart';
-import 'package:tagdo/service/in_app_review_service.dart';
-import 'package:tagdo/service/notification_service.dart';
-import 'package:tagdo/util/app_storage.dart';
-import 'package:tagdo/vm/database_handler.dart';
+import 'package:habitcell/model/todo.dart';
+import 'package:habitcell/service/in_app_review_service.dart';
+import 'package:habitcell/service/notification_service.dart';
+import 'package:habitcell/util/app_storage.dart';
+import 'package:habitcell/vm/database_handler.dart';
 
 /// TodoListNotifier - Riverpod AsyncNotifier 기반 ViewModel
 ///

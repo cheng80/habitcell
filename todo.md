@@ -1,207 +1,276 @@
-# TODO - 추가 구현 항목
+# TODO - Habit App 구현 항목
 
-## 기능 추가
+> docs/habit (master_habit_app_spec_v_1_0.md, habit_app_db_schema_master_v_1_0.md) 기준으로 세분화
 
-- [x] **튜토리얼 / 온보딩 (showcaseview ^5.0.1)**
-  - [x] 1단계: GetStorage에 `tutorial_completed` 플래그 추가
-    - `AppStorage`: getTutorialCompleted, setTutorialCompleted, resetTutorialCompleted
-  - [x] 2단계: Home 화면에 ShowcaseView 래핑
-    - `ShowcaseView.register()` + `startShowCase()` (addPostFrameCallback)
-    - GlobalKey 6개: tagManage, drawer, search, add, filter, firstTodo
-  - [x] 3단계: 스포트라이트 대상 정의 및 순서
-    - 1) 태그 관리 → Drawer 내 태그 관리 버튼
-    - 2) 햄버거 메뉴 → 메뉴 열기, 태그 관리·언어·테마
-    - 3) 검색 버튼 → 할 일 검색
-    - 4) + 버튼 → 새 할 일 추가
-    - 5) 필터 칩 (전체/미완료/완료) → 목록 필터
-    - 6) 첫 할 일 항목 → 체크박스, 태그, 드래그 핸들, 마감일
-  - [x] 4단계: 다국어 문자열 추가
-    - tutorial_skip, tutorial_next, tutorial_step_1~6, tutorial_replay (ko, en, ja, zh-CN, zh-TW)
-  - [x] 5단계: "튜토리얼 다시 보기" 메뉴
-    - Drawer에 ListTile 추가, onTutorialReplay 콜백으로 startShowCase 재호출
+---
 
-- [x] **스토어 평점/리뷰 팝업 (in_app_review ^2.0.11)**
-  - 참고: [docs/IN_APP_REVIEW_GUIDE.md](docs/IN_APP_REVIEW_GUIDE.md)
-  - [x] 1단계: `requestReview()` — 인앱 리뷰 팝업 (자동 호출)
-    - `AppStorage`: `first_launch_date`, `todo_completed_count`, `review_requested` 저장
-    - `InAppReviewService`: 조건(5개 완료 또는 3일 경과) 만족 시 `requestReview()` 호출
-    - `TodoListNotifier.toggleCheck`: 완료 시 횟수 증가 + `maybeRequestReview()` 호출
-  - [x] 2단계: `openStoreListing()` — 스토어로 이동 버튼
-    - Drawer에 "평점 남기기" ListTile 추가 (언어/태그 관리 사이)
-    - iOS 출시 후 `InAppReviewService.appStoreId` 입력 필요
-  - [x] 3단계: 다국어 문자열 추가
-    - `rateApp`: ko, en, ja, zh-CN, zh-TW
+## 0. 프로젝트 전환 (TagDo → Habit App)
 
-- [x] **색상 태그별 필터링 기능**
-  - `DatabaseHandler`에 `queryTodosByTag(int tag)` 메서드 추가
-  - `VMHandler`에 `filterByTag(int? tag)` 메서드 추가
-  - `home.dart` 앱바 아래에 태그 필터 드롭다운 UI 추가
-  - null이면 전체 보기, 인덱스 지정 시 해당 색상만 필터링
-  - 수정 파일: `database_handler.dart`, `vm_handler.dart`, `home.dart`
+### 0.1 앱 기본 정보
+- [x] pubspec.yaml: name `habitcell`, description HabitCell
+- [x] Android: applicationId `com.cheng80.habitcell`
+- [x] iOS: Bundle ID `com.cheng80.habitcell`
+- [x] Android: `kotlin/com/cheng80/habitcell/` 패키지 경로
+- [x] README.md: HabitCell 전환 반영
 
-- [x] **태그에 이름 부여**
-  - Tag 모델 + Hive Box "tag"로 DB 저장
-  - 기본 10개: 업무, 개인, 공부, 취미, 건강, 쇼핑, 가족, 금융, 이동, 기타
-  - 목록/편집/필터 화면에서 색상 옆에 태그 이름 표시
+### 0.2 기존 TagDo 코드 정리
+- [ ] Todo/Tag 관련 코드 제거 또는 보존 결정
+- [ ] Hive 관련 import/초기화 제거 (SQLite 전환 후)
+- [ ] Drawer 메뉴: 태그 관리 → 습관 관리 등으로 변경
 
-- [x] **검색 기능**
-  - 할 일 내용(content) 텍스트 검색
-  - 앱바에 검색 아이콘 추가 → 검색 바 토글
+---
 
-- [x] **완료/미완료 필터 (전체, 완료, 미완료)**
-  - 기존 자동 정렬(미완료→완료) 제거
-  - 단일 정렬 기준: 최근 수정순
-  - 상태 필터 칩 UI 추가 (HomeStatusChips)
+## 1. 데이터 레이어 (Hive → SQLite)
 
-- [x] **태그 색상 커스터마이징**
-  - Tag 모델에 `colorValue` (int) 필드로 색상 직접 저장
-  - `TodoColor.presets` 15개 프리셋 + `MaterialPicker` (~190색) 선택 가능
-  - `flutter_colorpicker` 패키지 적용
+### 1.1 의존성
+- [ ] pubspec.yaml: hive, hive_flutter 제거
+- [ ] pubspec.yaml: sqflite, path 추가 (이미 있음 확인)
+- [ ] path_provider 추가 (필요 시 DB 경로)
 
-- [x] **태그 관리 화면 (태그 설정)**
-  - Drawer → "태그 관리" 버튼으로 진입
-  - 태그 추가/수정/삭제 가능 (`tag_settings.dart`)
-  - 색상 선택: 프리셋 다이얼로그 + MaterialPicker 다이얼로그
+### 1.2 SQLite 스키마 생성
+- [ ] `habit_app_db_schema_master_v_1_0.md` 기반 SQLite DDL 작성
+- [ ] habits 테이블: id(UUID), title, daily_target, sort_order, reminder_time, is_active, is_deleted, is_dirty, created_at, updated_at
+- [ ] habit_daily_logs 테이블: id, habit_id, date, count, is_deleted, is_dirty, created_at, updated_at
+- [ ] app_settings 테이블: key, value, updated_at
+- [ ] PRAGMA foreign_keys = ON 적용
+- [ ] 인덱스 생성 (idx_habits_active, idx_habits_updated, uk_habit_date, idx_logs_updated)
 
-- [x] **Drawer 추가**
-  - 세팅 헤더 (기어 아이콘 + "세팅" 텍스트)
-  - 다크 모드 스위치
-  - 화면 꺼짐 방지 스위치 (wakelock_plus, 기본값 false)
-  - 태그 관리 버튼
+### 1.3 모델 클래스
+- [ ] Habit 모델 생성 (id, title, daily_target, sort_order, reminder_time, is_active, is_deleted, is_dirty, created_at, updated_at)
+- [ ] HabitDailyLog 모델 생성 (id, habit_id, date, count, is_deleted, is_dirty, created_at, updated_at)
+- [ ] AppSetting 모델 또는 Map<String, String> 활용
 
-- [x] **테마 시스템 적용 (다크/라이트 모드)**
-  - `ThemeNotifier` + `GetStorage`로 테마 상태 관리/영속화
-  - `CommonColorScheme` 기반 시맨틱 컬러 정의
-  - `context.palette` 확장으로 어디서든 테마 색상 접근
-  - 모든 view 파일의 하드코딩 색상 → `context.palette` 마이그레이션
+### 1.4 DB Handler
+- [ ] DatabaseHandler → HabitDatabaseHandler (또는 SQLite 전용 Handler로 교체)
+- [ ] habits CRUD: insert, update, delete(소프트), getAll, getById
+- [ ] habit_daily_logs CRUD: upsert(habit_id, date), getByHabitAndDate, getByHabitId
+- [ ] app_settings: get, set
+- [ ] DB 초기화 (앱 최초 실행 시 스키마 생성)
 
-- [x] **UI 모듈화**
-  - `home.dart`의 위젯 빌드 함수들을 `home_widgets.dart`로 분리
-  - `todo_item.dart` 별도 위젯 파일 분리
+---
 
-- [x] **Todo 항목 순서 변경 (드래그 앤 드롭)**
-  - `ReorderableListView` + `ReorderableDragStartListener` (드래그 핸들)
-  - `Todo.sortOrder` 필드 추가 (HiveField 6)
-  - `DatabaseHandler.reorder()` / `TodoListNotifier.reorder()`로 순서 영속화
+## 2. Flutter - 핵심 기능
 
-- [x] **삭제 UX 개선**
-  - 길게 누르기 시 해당 Todo 하이라이트 효과 (AnimatedContainer)
-  - 삭제 바텀시트에 "완료 항목 일괄 삭제" 버튼 추가
-  - 바텀시트 닫히면 하이라이트 자동 해제
+### 2.1 습관 CRUD
+- [ ] 습관 생성: Habit 생성 UI + Handler.insert
+- [ ] 습관 편집: title, daily_target, reminder_time, sort_order 수정
+- [ ] 습관 삭제: is_deleted=true (소프트 삭제)
+- [ ] 습관 목록: is_deleted=false만 조회, sort_order 정렬
+- [ ] is_active 토글 (필요 시)
 
-- [x] **편집 시트 내 태그 관리 바로가기**
-  - Todo 생성/수정 바텀시트 하단에 "태그 관리" 버튼 추가
-  - Navigator.push로 태그 설정 화면 이동 → 복귀 시 태그 목록 자동 갱신
+### 2.2 일별 기록 (+1/-1)
+- [ ] 홈 화면: 습관별 오늘 카운트 표시
+- [ ] +1 버튼: habit_daily_logs count 증가 (upsert)
+- [ ] -1 버튼: count 감소 (0 미만 방지)
+- [ ] 달성 판단: count >= daily_target 시 시각적 표시
+- [ ] is_dirty 플래그: 변경 시 1로 설정
 
-- [x] **마감일 및 알림 기능 (단계적 구현)**
-  - [x] 1단계: Todo 모델에 `dueDate` (DateTime?) 필드 추가 + TypeAdapter 수정
-  - [x] 2단계: 편집 시트에 날짜/시간 선택 UI
-    - 날짜: `showDatePicker` (Material 캘린더)
-    - 시간: `CupertinoDatePicker` 바텀시트 (Material showTimePicker 대체)
-  - [x] 3단계: 홈 화면 Todo 아이템에 마감일 표시 (알람 아이콘 + 날짜/시간 텍스트)
-  - [x] 4단계: `flutter_local_notifications` 연동 (알림 예약/취소/수정)
-    - `NotificationService`: scheduleNotification, cancelNotification, cleanupExpiredNotifications
-    - TodoListNotifier insert/update/delete 시 알람 등록/취소 연동
-    - 앱 시작/포그라운드 복귀 시 Hive Box 마감일 Todo 알람 재등록 (DB 로드만으로는 미등록됨)
-    - Android 알람 ID 32비트 제한 처리 (`_toNotificationId`)
-    - 알람 등록 시 payload에 dueDate 저장 → 로그에 dueDate 출력
-  - [x] 5단계: iOS 권한 요청 처리 (Info.plist, AppDelegate 설정)
-    - `requestPermission`, `DarwinInitializationSettings` (presentBanner, presentList 등)
-  - Drawer "알람 상태 확인" 메뉴: Hive Box 마감일 Todo 개수 + 등록된 알람 개수 표시
-  - [x] 앱 아이콘 배지 (app_badge_plus): 예약 알람 개수 표시, 앱 진입 시 clearBadge
+### 2.3 히트맵 (GitHub 잔디 모티브)
+- [ ] 월별 히트맵 위젯
+- [ ] 연간 히트맵 위젯
+- [ ] 날짜별 달성 여부: count >= daily_target → 달성, 미달성 → 회색
+- [ ] 색상 레벨: 미달성(회색) / 달성(테마색) / 초과 달성(더 진한 테마색)
+- [ ] **잔디 색상 테마 (사용자 선택)**
+  - [ ] HeatmapTheme enum: github, ocean, sunset, lavender, mint, rose, monochrome
+  - [ ] HeatmapThemeColors: empty(미달성) + levels[4](달성 강도)
+  - [ ] 테마별 색상 정의 (GitHub녹색, Ocean파랑, Sunset주황, Lavender보라, Mint민트, Rose로즈, Monochrome회색)
+  - [ ] app_settings 또는 GetStorage: heatmap_theme 키로 저장
+  - [ ] 설정 화면: "잔디 색상 테마" 선택 UI (미리보기 썸네일)
+  - [ ] 다크 모드 대응: 배경/회색 톤 조정
 
-- [x] **마감일 필터 (알람 아이콘 토글)**
-  - 홈 필터: [전체][미완료][완료] 왼쪽 / [🔔] 오른쪽
-  - 알람 아이콘 토글: 마감일 있는 것만 ↔ 전체
+### 2.4 Streak 및 통계
+- [ ] 연속 달성일(streak) 계산 로직
+- [ ] 최근 7일 달성률
+- [ ] 최근 30일 달성률
+- [ ] 통계 화면 또는 분석 탭
 
-- [x] **다국어 (easy_localization)**
-  - `assets/translations/`: ko, en, ja, zh-CN, zh-TW
-  - Drawer에 언어 선택
+### 2.5 로컬 알림
+- [ ] reminder_time: 습관별 HH:mm에 로컬 알림 예약
+- [ ] 마감 알림 옵션: 미달성 습관이 있는 날 21:00 같은 고정 시각
+- [ ] 달성 시 자동 취소: 당일 목표 달성 시 해당 습관 알림 + 마감 알림 취소
+- [ ] flutter_local_notifications 연동 (기존 NotificationService 활용/수정)
 
-- [x] **앱 아이콘 & 스플래시**
-  - `assets/icon.png`, `assets/splash.png` (TagDo 텍스트 포함)
-  - `flutter_launcher_icons`, `flutter_native_splash` 설정
-  - `FlutterNativeSplash.preserve()` / `remove()` 패턴 적용
+---
 
-- [x] **튜토리얼용 할 일 자동 생성**
-  - 앱 최초 설치 시 5분 후 알람이 있는 튜토리얼 할 일 1개 생성
-  - `AppStorage.tutorial_todo_created` 플래그로 1회만 실행
-  - `TodoListNotifier.createTutorialTodoIfNeeded()` — Home에서 `context.tr()`로 번역된 문자열 전달
+## 3. Flutter - 백업/복구
 
-## 기능 확장
+### 3.1 device_uuid
+- [ ] device_uuid 생성 (uuid 패키지 또는 UUID v4)
+- [ ] GetStorage에 device_uuid 저장
+- [ ] 앱 최초 실행 시 1회 생성
 
-- [ ] **위젯/홈 위젯**
-  - 홈 화면에 Todo 요약 표시 (미완료 개수, 다음 마감일 등)
-  - `home_widget` 패키지 사용, 네이티브 위젯(Android/iOS) 작성 필요
-  - 참고: [docs/HOME_WIDGET_PACKAGE_REVIEW.md](docs/HOME_WIDGET_PACKAGE_REVIEW.md)
+### 3.2 GetStorage 키 (경량 저장소)
+- [ ] device_uuid
+- [ ] last_backup_at
+- [ ] last_backup_attempt_at
+- [ ] auto_backup_enabled
+- [ ] cooldown_minutes
 
-- [ ] **백업/복원**
-  - Hive 데이터(Todo, Tag) 내보내기·가져오기
-  - 파일 저장/불러오기 또는 공유(Share)로 백업본 전달
+### 3.3 수동 백업
+- [ ] 설정 > 백업: "지금 백업하기" 버튼
+- [ ] 스냅샷 payload 생성 (schema_version, device_uuid, exported_at, settings, habits, logs)
+- [ ] POST /v1/backups API 호출
+- [ ] 성공 시 "마지막 백업: YYYY-MM-DD HH:mm" 표시
 
-- [ ] **데이터 내보내기**
-  - CSV/JSON 등으로 Todo 목록 내보내기
-  - 설정 또는 Drawer에서 "데이터 내보내기" 메뉴
+### 3.4 자동 백업
+- [ ] 설정 토글: auto_backup_enabled
+- [ ] 트리거 1: 기록 완료(+1/-1 확정) 시 is_dirty==true일 때
+- [ ] 트리거 2: 앱 백그라운드 전환(pause) 시
+- [ ] cooldown(기본 10분) 이내 중복 실행 금지
+- [ ] 네트워크 불가 시 스킵, is_dirty 유지
 
-## 출시 준비
+### 3.5 자동 백업 고지
+- [ ] 자동 백업 ON 시 1회 팝업: "마지막 백업 이후 변경은 복구 시 포함되지 않을 수 있습니다"
+- [ ] 설정 화면 상시: "마지막 백업: YYYY-MM-DD HH:mm"
 
-→ **[docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md)** 참고 (다른 앱에서도 재사용 가능)
+### 3.6 이메일 등록 (6자리 인증)
+- [ ] 백업 기능 최초 사용 시 이메일 입력 요구
+- [ ] 이메일 입력 → POST /v1/recovery/email/request
+- [ ] 6자리 코드 입력 UI
+- [ ] POST /v1/recovery/email/verify
+- [ ] 인증 성공 시 device↔email 연결
+- [ ] 개인정보/고지: 백업 진입 시 이메일 수집 목적/범위 고지
 
-- TagDo 전용: Bundle ID `com.cheng80.tagdo`, applicationId `com.cheng80.tagdo`, 카테고리 생산성
+### 3.7 복구
+- [ ] GET /v1/backups/latest?device_uuid=... 호출
+- [ ] payload 다운로드
+- [ ] 복구 직전 경고 + 선택지:
+  - [ ] 1) 현재 상태 백업 후 복구
+  - [ ] 2) 바로 복구
+  - [ ] 3) 취소
+- [ ] SQLite 트랜잭션: 기존 habits/logs 삭제 → payload 재삽입 → 커밋
 
-## 버그 수정 / 개선
+---
 
-- [x] **DateTime.now() 중복 호출 버그 수정**
-  - `Todo.create()`에서 now 변수 하나로 통일 완료
+## 4. FastAPI 백엔드
 
-- [x] **updatedAt 미갱신 수정**
-  - `todo_edit.dart` 수정 모드에서 `updatedAt: DateTime.now()` 추가 완료
+### 4.1 MySQL 스키마
+- [ ] habit_app_db 생성 (utf8mb4)
+- [ ] devices 테이블
+- [ ] email_verifications 테이블
+- [ ] backups 테이블
+- [ ] mysql/habit_app_db_init.sql 파일 생성
 
-- [x] **"CHAGNGE" 오타 수정**
-  - "CHANGE"로 수정 완료
+### 4.2 DB 연결
+- [ ] connection.py: habit_app_db, .env 기반 설정
+- [ ] .env.example: DB_HOST, DB_USER, DB_PASSWORD, DB_NAME
 
-- [x] **전체 삭제 시 확인 다이얼로그 추가**
-  - 실수로 전체 삭제 방지를 위한 "정말 삭제하시겠습니까?" 확인 팝업
+### 4.3 이메일 인증 API
+- [ ] app/api/recovery.py 생성
+- [ ] POST /v1/recovery/email/request: 6자리 코드 생성, code_hash 저장, 이메일 발송
+- [ ] POST /v1/recovery/email/verify: code_hash 비교, devices.email 업데이트
+- [ ] email_service.py: send_verification_code (Habit App용)
 
-- [x] **빈 내용 저장 방지**
-  - content가 비어있을 때 저장 버튼 비활성화 또는 인라인 경고 표시
+### 4.4 백업 API
+- [ ] app/api/backups.py 생성
+- [ ] POST /v1/backups: payload 업서트 (ON DUPLICATE KEY UPDATE)
+- [ ] GET /v1/backups/latest?device_uuid=...: 최신 백업 조회
 
-- [x] **드롭다운 선택 시 글자 흔들림 수정**
-  - `isExpanded: true` + `Expanded` + `Align` 적용
+### 4.5 main.py
+- [ ] recovery, backups 라우터 등록  
+- [ ] (이미 Habit App API로 변경됨)
 
-- [x] **다크 모드 바텀시트/다이얼로그 가독성 개선**
-  - `sheetBackground`, `textOnSheet`, `iconOnSheet` 다크 테마 색상 조정
-  - 모든 바텀시트/AlertDialog에 `backgroundColor: p.sheetBackground` 적용
+---
 
-- [x] **Hive TypeAdapter 파일 리네이밍**
-  - `.g.dart` → `_adapter.dart` (수동 관리 명확화)
-  - 코드 제너레이터 마이그레이션 가이드 문서 작성 (`docs/generator_migration.md`)
+## 5. UI/설정
 
-- [x] **과거 마감일 수정 시 DatePicker assertion 수정**
-  - `initialDate`가 `firstDate`(오늘)보다 이전일 때 assertion 발생
-  - `savedDueDate.isBefore(today)` 시 `initialDate`를 오늘로 클램프
+### 5.1 홈 화면
+- [ ] 습관 리스트 (sort_order 정렬)
+- [ ] 오늘 수행 카운터 (+1/-1)
+- [ ] 달성 시 즉시 시각 변화 (색상/체크 등)
 
-## 구조 개선
+### 5.2 분석 화면
+- [ ] 히트맵 (월/연)
+- [ ] Streak 표시
+- [ ] 최근 7/30일 달성률
 
-- [x] **MVVM 패턴 정리**
-  - Handler: DB/저장소 접근 전담 (DatabaseHandler, TagHandler)
-  - Notifier: Riverpod 상태 관리 (TodoListNotifier, TagListNotifier, ThemeNotifier, WakelockNotifier)
-  - vm_handler.dart 삭제 → TodoListNotifier로 통합
+### 5.3 설정 화면
+- [ ] 백업: 수동/자동, 이메일 등록, 마지막 백업 시간
+- [ ] 복구 버튼
+- [ ] 테마 (라이트/다크) - 기존 유지
+- [ ] 다국어 - 기존 유지
+- [ ] Drawer 구조: 습관관리, 설정, 백업, 언어, 테마 등
 
-- [x] **Todo 아이템 위젯 분리**
-  - `home.dart`의 `_buildTodoItem()`을 별도 위젯 파일로 분리
-  - `view/todo_item.dart` 생성 → `ConsumerWidget`으로 구현
+### 5.4 습관 편집
+- [ ] title, daily_target, reminder_time 입력
+- [ ] sort_order 변경 (드래그 등)
 
-- [x] **TodoEditSheet 위젯 모듈화**
-  - `todo_edit_sheet.dart` 500줄+ → 관련 위젯을 `sheets/todo_edit_sheet/` 폴더로 분리
-  - `edit_form_field.dart`, `edit_sheet_header.dart`, `edit_sheet_content_field.dart`, `edit_sheet_due_date_field.dart`, `edit_sheet_tag_selector.dart`
+---
 
-- [x] **마감일(dueDate) UI 통합**
-  - Todo 카드: 생성/수정 시간 제거 → 마감일 영역으로 대체 (설정 시에만 표시)
-  - 핸들 아이콘 왼쪽에 알람 아이콘(`Icons.access_alarm`) - dueDate 설정 시 노란색(`alarmAccent`), 미설정 시 영역만 유지
-  - 테마에 `alarmAccent` 색상 추가 (라이트/다크 공통)
-  - `edit_sheet_notifier.dart`에 `editDueDateProvider` 추가, `Todo.copyWith`에 `clearDueDate` 파라미터
+## 6. 기존 TagDo 기능 검토
 
-- [ ] **Riverpod 코드 제너레이션 방식 추가 (`@riverpod`)**
-  - 참고 프로젝트의 `vm_handler_gen.dart`처럼 어노테이션 방식 ViewModel 추가
-  - `riverpod_annotation`, `riverpod_generator` 패키지 필요
+### 6.1 유지 (습관앱에 맞게 수정)
+- [ ] 테마 시스템 (ThemeNotifier, CommonColorScheme)
+- [ ] 다국어 (easy_localization)
+- [ ] 로컬 알림 (NotificationService, flutter_local_notifications)
+- [ ] 앱 아이콘/스플래시
+- [ ] Drawer 구조
+- [ ] MVVM 패턴 (Handler, Notifier)
+
+### 6.2 제거 또는 대체
+- [ ] Todo 모델 → Habit 모델
+- [ ] Tag 모델 → (습관앱에 태그 없음, 제거 또는 다른 용도)
+- [ ] Hive → SQLite
+- [ ] TodoListNotifier → HabitListNotifier
+- [ ] TagHandler, TagListNotifier → (제거 또는 습관 카테고리로 전환)
+
+### 6.3 수정/마이그레이션
+- [ ] AppStorage: tutorial_completed 등 → habit_app용 키로 정리
+- [ ] InAppReviewService: todo_completed_count → habit 관련 지표로 변경
+- [ ] 번역 파일: Todo 관련 → Habit 관련 문자열
+
+---
+
+## 7. 출시 준비
+
+- [ ] [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md) 참고
+- [ ] Bundle ID / applicationId: habit_app 최종 확정
+- [ ] 카테고리: 생산성 또는 건강/피트니스
+- [ ] 개인정보처리방침 URL (iOS 필수)
+
+---
+
+## 8. FastAPI 폴더 정리 (완료된 항목)
+
+- [x] Table Now API 라우터 9개 삭제
+- [x] weather, fcm, weather_mapping 유틸 삭제
+- [x] main_gt.py, test_*.py 삭제
+- [x] mysql/ table_now 관련 삭제
+- [x] main.py: Habit App API로 변경
+- [x] requirements.txt: firebase-admin, pycryptodome, requests 제거
+
+---
+
+## 9. docs/email 문서 (완료된 항목)
+
+- [x] 인증_토큰과_인증코드_설명.md → 습관앱 이메일 인증용 갱신
+- [x] 이메일_서비스_설정_가이드.md → Habit App으로 갱신
+- [x] 이메일_등록_인증_구현_가이드.md 신규 작성
+- [x] 비밀번호_변경_이메일_인증_구현_가이드.md 삭제
+
+---
+
+## 10. 수정 필요 사항 (검토)
+
+### 10.1 pubspec.yaml
+- [ ] hive, hive_flutter 제거
+- [ ] flutter_colorpicker: 태그 색상용 → 습관앱에서 사용 여부 결정
+- [ ] showcaseview: 튜토리얼 → 습관앱 온보딩으로 수정
+- [ ] in_app_review: habit 관련 지표로 조건 변경
+
+### 10.2 기존 문서
+- [x] README.md: HabitCell 반영
+- [ ] CURSOR.md: 그대로 유지 (작업 방식, MVVM 등)
+- [ ] docs/RELEASE_CHECKLIST.md: habit_app 전용 항목 추가
+
+### 10.3 테스트
+- [ ] widget_test.dart: Todo → Habit 테스트로 수정
+- [ ] 통합 테스트 (SQLite, 백업/복구, 이메일 인증)
+
+---
+
+## 참고 문서
+
+- [docs/habit/master_habit_app_spec_v_1_0.md](docs/habit/master_habit_app_spec_v_1_0.md)
+- [docs/habit/habit_app_db_schema_master_v_1_0.md](docs/habit/habit_app_db_schema_master_v_1_0.md)
+- [docs/email/이메일_등록_인증_구현_가이드.md](docs/email/이메일_등록_인증_구현_가이드.md)

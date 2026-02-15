@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tagdo/theme/app_colors.dart';
+import 'package:habitcell/theme/app_colors.dart';
 
 /// 최상위 ScaffoldMessenger에 접근하기 위한 글로벌 키.
 /// MaterialApp의 messengerKey에 연결하면, 여러 컨텍스트에서 스낵바를

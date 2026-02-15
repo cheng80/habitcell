@@ -3,7 +3,7 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:in_app_review/in_app_review.dart';
-import 'package:tagdo/util/app_storage.dart';
+import 'package:habitcell/util/app_storage.dart';
 
 /// 인앱 리뷰 요청 조건
 class InAppReviewConfig {
