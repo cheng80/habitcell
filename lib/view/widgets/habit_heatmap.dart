@@ -7,7 +7,9 @@
 // - 년/전체: 데이터 있는 월만 표시, 12개월 초과 시 최근 12개월, 3열 그리드, 왼쪽 정렬
 // [level] 0=emptyColor, 1~4=levelColors[0~3]
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:habitcell/model/habit_stats.dart';
 import 'package:habitcell/theme/config_ui.dart';
 import 'package:habitcell/util/date_util.dart';
@@ -182,7 +184,10 @@ class HabitHeatmap extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('$month월', style: TextStyle(fontSize: 10, color: textColor)),
+          Text(
+            DateFormat.MMM(context.locale.toString()).format(DateTime(year, month)),
+            style: TextStyle(fontSize: 10, color: textColor),
+          ),
           const SizedBox(height: 2),
           for (var row = 0; row < ((daysInMonth + startWeekday + 6) / 7).ceil(); row++)
             Padding(

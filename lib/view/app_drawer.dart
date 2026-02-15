@@ -114,12 +114,9 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
     var habitAlarmCount = 0;
     for (final item in habits) {
       final h = item.habit;
-      if (h.reminderTime != null || h.deadlineReminderTime != null) {
+      if (h.deadlineReminderTime != null) {
         habitAlarmCount++;
-        final parts = <String>[];
-        if (h.reminderTime != null) parts.add('리마인드 ${h.reminderTime}');
-        if (h.deadlineReminderTime != null) parts.add('마감 ${h.deadlineReminderTime}');
-        lines.add('- ${h.title}: ${parts.join(', ')}');
+        lines.add('- ${h.title}: 마감 ${h.deadlineReminderTime}');
       }
     }
     if (habitAlarmCount == 0) {
@@ -330,23 +327,38 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                 horizontal: ConfigUI.screenPaddingH,
                 vertical: 4,
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'preReminder'.tr(),
-                    style: TextStyle(color: p.textPrimary, fontSize: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'preReminder'.tr(),
+                        style: TextStyle(color: p.textPrimary, fontSize: 16),
+                      ),
+                      Switch(
+                        value: ref.watch(preReminderNotifierProvider),
+                        activeThumbColor: p.chipSelectedBg,
+                        activeTrackColor: p.chipUnselectedBg,
+                        inactiveThumbColor: p.textMeta,
+                        inactiveTrackColor: p.chipUnselectedBg,
+                        onChanged: (_) {
+                          HapticFeedback.mediumImpact();
+                          ref.read(preReminderNotifierProvider.notifier).toggle();
+                        },
+                      ),
+                    ],
                   ),
-                  Switch(
-                    value: ref.watch(preReminderNotifierProvider),
-                    activeThumbColor: p.chipSelectedBg,
-                    activeTrackColor: p.chipUnselectedBg,
-                    inactiveThumbColor: p.textMeta,
-                    inactiveTrackColor: p.chipUnselectedBg,
-                    onChanged: (_) {
-                      HapticFeedback.mediumImpact();
-                      ref.read(preReminderNotifierProvider.notifier).toggle();
-                    },
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      'preReminderHint'.tr(),
+                      style: TextStyle(
+                        color: p.textMeta,
+                        fontSize: 12,
+                      ),
+                    ),
                   ),
                 ],
               ),

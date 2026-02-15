@@ -32,49 +32,69 @@
 
 ## 2.2 테이블 정의
 
+> 상세 DDL 및 마이그레이션은 `sqlite_schema_v1.md` 참조.
+
 ```sql
 PRAGMA foreign_keys = ON;
 
-BEGIN;
+-- categories: 습관 카테고리 (건강, 집중, 독서 등)
+CREATE TABLE IF NOT EXISTS categories (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  color_value INTEGER NOT NULL DEFAULT 0xFF9E9E9E,
+  sort_order INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_categories_sort ON categories(sort_order);
 
-CREATE TABLE habits (
+-- habits: 습관
+CREATE TABLE IF NOT EXISTS habits (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
   daily_target INTEGER NOT NULL DEFAULT 1,
   sort_order INTEGER NOT NULL DEFAULT 0,
-  reminder_time TEXT DEFAULT NULL,
+  category_id TEXT DEFAULT NULL,
+  deadline_reminder_time TEXT DEFAULT NULL,
   is_active INTEGER NOT NULL DEFAULT 1,
   is_deleted INTEGER NOT NULL DEFAULT 0,
   is_dirty INTEGER NOT NULL DEFAULT 1,
   created_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
 );
-
 CREATE INDEX idx_habits_active ON habits(is_active);
 CREATE INDEX idx_habits_updated ON habits(updated_at);
 
-CREATE TABLE habit_daily_logs (
+-- habit_daily_logs: 일별 수행 기록
+CREATE TABLE IF NOT EXISTS habit_daily_logs (
   id TEXT PRIMARY KEY,
   habit_id TEXT NOT NULL,
   date TEXT NOT NULL,
   count INTEGER NOT NULL DEFAULT 0,
+  is_completed INTEGER NOT NULL DEFAULT 0,
   is_deleted INTEGER NOT NULL DEFAULT 0,
   is_dirty INTEGER NOT NULL DEFAULT 1,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   FOREIGN KEY (habit_id) REFERENCES habits(id) ON DELETE CASCADE
 );
-
 CREATE UNIQUE INDEX uk_habit_date ON habit_daily_logs(habit_id, date);
 CREATE INDEX idx_logs_updated ON habit_daily_logs(updated_at);
 
-CREATE TABLE app_settings (
+-- app_settings: key-value 설정
+CREATE TABLE IF NOT EXISTS app_settings (
   key TEXT PRIMARY KEY,
   value TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
 
-COMMIT;
+-- heatmap_daily_snapshots: 날짜별 달성률 스냅샷 (히트맵용)
+CREATE TABLE IF NOT EXISTS heatmap_daily_snapshots (
+  date TEXT PRIMARY KEY,
+  achieved INTEGER NOT NULL DEFAULT 0,
+  total INTEGER NOT NULL DEFAULT 0,
+  level INTEGER NOT NULL DEFAULT 0,
+  updated_at TEXT NOT NULL
+);
 ```
 
 ---
@@ -89,8 +109,10 @@ COMMIT;
   "device_uuid": "string",
   "exported_at": "ISO8601",
   "settings": { ... },
+  "categories": [ ... ],
   "habits": [ ... ],
-  "logs": [ ... ]
+  "logs": [ ... ],
+  "heatmap_snapshots": [ ... ]
 }
 ```
 
@@ -167,7 +189,7 @@ ON DUPLICATE KEY UPDATE
 
 1. 서버에서 payload 다운로드
 2. SQLite 트랜잭션 시작
-3. 기존 habits/logs 삭제
+3. 기존 categories, habits, logs, heatmap_snapshots 삭제
 4. payload 데이터 재삽입
 5. 트랜잭션 커밋
 
@@ -177,7 +199,7 @@ ON DUPLICATE KEY UPDATE
 
 # 7. 데이터 흐름 요약
 
-로컬 기록 → SQLite 저장 → is\_dirty = 1 자동/수동 백업 트리거 → JSON 스냅샷 생성 → MySQL backups 업서트 복구 → MySQL 최신 payload 조회 → SQLite 교체
+로컬 기록 → SQLite 저장 → `is_dirty` = 1 자동/수동 백업 트리거 → JSON 스냅샷 생성(categories, habits, logs, heatmap_snapshots) → MySQL backups 업서트 복구 → MySQL 최신 payload 조회 → SQLite 교체
 
 ---
 

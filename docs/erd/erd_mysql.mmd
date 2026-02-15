@@ -1,0 +1,34 @@
+%% ERD - Habit App MySQL (Server Backup)
+%% 백업 저장소: 최신 스냅샷 1개만 저장
+%% Mermaid 문법 | GitHub/GitLab/mermaid.live에서 렌더링
+
+erDiagram
+    devices ||--o{ email_verifications : "device_uuid"
+    devices ||--|| backups : "device_uuid"
+
+    devices {
+        char device_uuid PK "UUID(36)"
+        varchar email "이메일(nullable)"
+        datetime email_verified_at "인증 완료 시각"
+        datetime created_at "생성 시각"
+        datetime updated_at "수정 시각"
+    }
+
+    email_verifications {
+        bigint id PK "AUTO_INCREMENT"
+        char device_uuid FK "devices.device_uuid"
+        varchar email "이메일"
+        char code_hash "6자리 코드 해시"
+        datetime expires_at "만료 시각"
+        int attempt_count "시도 횟수"
+        datetime created_at "생성 시각"
+    }
+
+    backups {
+        char device_uuid PK "devices.device_uuid"
+        longtext payload_json "스냅샷 JSON"
+        char checksum "체크섬"
+        datetime payload_updated_at "payload 갱신 시각"
+        datetime created_at "생성 시각"
+        datetime updated_at "수정 시각"
+    }

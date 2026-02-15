@@ -1,6 +1,7 @@
 // main_scaffold.dart
 // 홈/분석 탭 네비게이션
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -42,7 +43,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
           onPressed: () => _scaffoldKey.currentState?.openDrawer(),
         ),
         title: Text(
-          _currentIndex == 0 ? 'HabitCell' : '분석',
+          _currentIndex == 0 ? 'HabitCell' : 'navAnalysis'.tr(),
           style: TextStyle(color: p.textPrimary, fontSize: ConfigUI.fontSizeAppBar),
         ),
         actions: _currentIndex == 0
@@ -77,14 +78,14 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
               children: [
                 _NavItem(
                   icon: Icons.home_outlined,
-                  label: '홈',
+                  label: 'navHome'.tr(),
                   isSelected: _currentIndex == 0,
                   onTap: () => setState(() => _currentIndex = 0),
                   palette: p,
                 ),
                 _NavItem(
                   icon: Icons.analytics_outlined,
-                  label: '분석',
+                  label: 'navAnalysis'.tr(),
                   isSelected: _currentIndex == 1,
                   onTap: () => setState(() => _currentIndex = 1),
                   palette: p,

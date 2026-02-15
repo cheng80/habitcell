@@ -156,7 +156,7 @@ Widget _buildOverallStats(AppColorScheme p, OverallStats stats) {
         ),
         const SizedBox(height: 4),
         Text(
-          '${stats.streak}일',
+          '${stats.streak}${'daysUnit'.tr()}',
           style: TextStyle(
             color: p.primary,
             fontSize: 32,
@@ -256,7 +256,7 @@ Widget _buildStatsCards(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${hs.habit.title} (${category?.name ?? '없음'})',
+              '${hs.habit.title} (${category?.name ?? 'categoryNone'.tr()})',
               style: TextStyle(
                 color: p.textPrimary,
                 fontSize: 16,
@@ -283,7 +283,7 @@ Widget _buildStatsCards(
                 Expanded(
                   child: _StatItem(
                     label: 'statsStreak'.tr(),
-                    value: '${hs.streak}일',
+                    value: '${hs.streak}${'daysUnit'.tr()}',
                     palette: p,
                   ),
                 ),
@@ -392,10 +392,10 @@ class _HeatmapRangeFilter extends StatelessWidget {
 
   String _rangeLabel(HeatmapRange r) {
     return switch (r) {
-      HeatmapRange.week => '주',
-      HeatmapRange.month => '월',
-      HeatmapRange.year => '년',
-      HeatmapRange.all => '전체',
+      HeatmapRange.week => 'heatmapRangeWeek'.tr(),
+      HeatmapRange.month => 'heatmapRangeMonth'.tr(),
+      HeatmapRange.year => 'heatmapRangeYear'.tr(),
+      HeatmapRange.all => 'heatmapRangeAll'.tr(),
     };
   }
 }

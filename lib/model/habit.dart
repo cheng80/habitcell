@@ -9,7 +9,6 @@ class Habit {
   final int dailyTarget;
   final int sortOrder;
   final String? categoryId;
-  final String? reminderTime; // HH:mm 리마인드
   final String? deadlineReminderTime; // HH:mm 마감 알림 (미달성 시)
   final bool isActive;
   final bool isDeleted;
@@ -23,7 +22,6 @@ class Habit {
     this.dailyTarget = 1,
     this.sortOrder = 0,
     this.categoryId,
-    this.reminderTime,
     this.deadlineReminderTime,
     this.isActive = true,
     this.isDeleted = false,
@@ -39,7 +37,6 @@ class Habit {
     int? sortOrder,
     String? categoryId,
     bool clearCategoryId = false,
-    String? reminderTime,
     String? deadlineReminderTime,
     bool clearDeadlineReminderTime = false,
     bool? isActive,
@@ -54,7 +51,6 @@ class Habit {
       dailyTarget: dailyTarget ?? this.dailyTarget,
       sortOrder: sortOrder ?? this.sortOrder,
       categoryId: clearCategoryId ? null : (categoryId ?? this.categoryId),
-      reminderTime: reminderTime ?? this.reminderTime,
       deadlineReminderTime: clearDeadlineReminderTime
           ? null
           : (deadlineReminderTime ?? this.deadlineReminderTime),
@@ -73,7 +69,6 @@ class Habit {
       'daily_target': dailyTarget,
       'sort_order': sortOrder,
       'category_id': categoryId,
-      'reminder_time': reminderTime,
       'deadline_reminder_time': deadlineReminderTime,
       'is_active': isActive ? 1 : 0,
       'is_deleted': isDeleted ? 1 : 0,
@@ -90,7 +85,6 @@ class Habit {
       dailyTarget: map['daily_target'] as int? ?? 1,
       sortOrder: map['sort_order'] as int? ?? 0,
       categoryId: map['category_id'] as String?,
-      reminderTime: map['reminder_time'] as String?,
       deadlineReminderTime: map['deadline_reminder_time'] as String?,
       isActive: (map['is_active'] as int? ?? 1) == 1,
       isDeleted: (map['is_deleted'] as int? ?? 0) == 1,

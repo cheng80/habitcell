@@ -1,6 +1,8 @@
 # 습관 앱 통합 마스터 문서 v1.0 (Local-first + Snapshot Backup)
 
 > 목적: 본 문서 **하나만** 보고도(사람/AI 모두) Flutter + SQLite + FastAPI + MySQL 기반 MVP 구현이 가능하도록, 기획/기술/DB/정책을 통합 정리한다.
+>
+> **SQLite 상세 스키마**: `sqlite_schema_v1.md`, `habit_app_db_schema_master_v_1_0.md` 참조.
 
 ---
 
@@ -97,35 +99,39 @@
 
 ## 5. 핵심 기능 상세
 
-### 5.1 Habit
+### 5.1 Category
+- 필드: id(UUID), name, color_value, sort_order
+- 용도: 습관 분류 (건강, 집중, 독서 등)
+- habits.category_id → categories.id (NULL = 없음)
+
+### 5.2 Habit
 - 필드(권장):
   - id(UUID)
   - title
   - daily_target (int)
-  - reminder_time (HH:mm, optional)
   - sort_order (int)
+  - category_id (nullable, FK → categories)
+  - deadline_reminder_time (HH:mm, nullable) — 마감 알림 시간
+  - is_active, is_deleted, is_dirty
   - created_at, updated_at
-  - is_deleted (bool)
-  - is_dirty (bool)
 
 - 정렬: sort_order를 저장하여 기기 변경 후에도 유지
 - 삭제: is_deleted=true로 표시 후 UI에서 숨김. (물리 삭제는 선택)
 
-### 5.2 HabitDailyLog
+### 5.3 HabitDailyLog
 - 구조: habit_id + date(YYYY-MM-DD) 기준 하루 1행
 - count: 수행 횟수
-- 달성: count >= daily_target
+- 달성: count >= daily_target → is_completed=1
 - 필드(권장):
   - id(UUID) 또는 복합키(habit_id,date)
-  - habit_id
-  - date
-  - count
+  - habit_id, date, count
+  - is_completed (bool) — 달성 여부
+  - is_deleted, is_dirty
   - created_at, updated_at
-  - is_deleted (bool)
-  - is_dirty (bool)
 
-### 5.3 히트맵/통계
+### 5.4 히트맵/통계
 - 히트맵: 날짜별 달성 여부(또는 달성 강도) 표시
+- heatmap_daily_snapshots: 과거 날짜의 "해당 시점 활성 습관" 기준 달성률 (정확도 보장)
 - streak: 연속 달성일 계산
 - 최근 7/30일 달성률
 
@@ -133,11 +139,11 @@
 
 ## 6. 알림 정책 (로컬 알림 전용)
 
-### 6.1 리마인드
-- 습관별 reminder_time에 로컬 알림 예약
+### 6.1 Pre-reminder
+- 점심·저녁에 오늘 습관 리마인드 (Drawer 토글)
 
 ### 6.2 마감 알림(옵션)
-- 전체 옵션 ON 시, 미달성 습관이 있는 날에만 21:00 같은 고정 시각 알림
+- 습관별 deadline_reminder_time(HH:mm) 설정 시, 미달성 시 해당 시각에 알림
 
 ### 6.3 자동 취소
 - 당일 목표 달성 순간, 해당 습관의 당일 예약 알림 및 마감 알림을 취소
@@ -277,16 +283,18 @@
 ## 12. 클라이언트 저장소
 
 ### 12.1 SQLite
-- habit
-- habit_daily_log
-- app_settings (마감 알림, 자동 백업 ON/OFF, cooldown, last_backup_at 등)
+- categories — 습관 카테고리
+- habits — 습관 (category_id, deadline_reminder_time 포함)
+- habit_daily_logs — 일별 기록 (is_completed 포함)
+- heatmap_daily_snapshots — 날짜별 달성률 스냅샷
+- app_settings — key-value (schema_version, app_locale, device_uuid 등)
 
 ### 12.2 경량 저장소(GetStorage)
-- device_uuid
-- last_backup_at
-- last_backup_attempt_at
-- auto_backup_enabled
-- cooldown_minutes
+- theme_mode — 테마 (light/dark/system)
+- heatmap_theme — 잔디 색상 테마
+- pre_reminder_enabled — 미리 알림(점심·저녁) ON/OFF
+- wakelock_enabled — 화면 꺼짐 방지
+- device_uuid, last_backup_at, auto_backup_enabled, cooldown_minutes (추후)
 
 ---
 

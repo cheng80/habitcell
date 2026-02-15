@@ -6,6 +6,7 @@
 // [완료 토글] count >= target일 때만, 토글 시 sort_order 맨 뒤로 (DB)
 // [카테고리] categoryId 있으면 상단 바 색상, 없으면 미표시
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -221,7 +222,7 @@ Widget _buildCountRow(
         size: 24,
       ),
       Text(
-        '$todayCount/$target회',
+        '$todayCount/$target${'countTimes'.tr()}',
         style: TextStyle(
           color: p.textPrimary,
           fontSize: 16,
@@ -276,7 +277,7 @@ class _CompleteButton extends StatelessWidget {
                 size: 22,
               ),
               Text(
-                '완료',
+                'completeButton'.tr(),
                 style: TextStyle(
                   color: palette.primary,
                   fontSize: ConfigUI.fontSizeButton,

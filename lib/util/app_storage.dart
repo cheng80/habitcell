@@ -22,7 +22,7 @@ class AppStorage {
 
   // ─── 스토어 리뷰 (in_app_review) ─────────────────
   static const String _keyFirstLaunchDate = 'first_launch_date';
-  static const String _keyTodoCompletedCount = 'todo_completed_count';
+  static const String _keyHabitAchievedCount = 'habit_achieved_count';
   static const String _keyReviewRequested = 'review_requested';
 
   /// 첫 실행일 (ISO8601 문자열). 없으면 null → 최초 1회 저장
@@ -33,14 +33,14 @@ class AppStorage {
   static Future<void> saveFirstLaunchDate(DateTime date) =>
       _storage.write(_keyFirstLaunchDate, date.toIso8601String());
 
-  /// 완료한 할 일 누적 횟수
-  static int getTodoCompletedCount() =>
-      _storage.read<int>(_keyTodoCompletedCount) ?? 0;
+  /// 습관 달성 누적 횟수 (목표 달성 시 +1, 인앱 리뷰 조건용)
+  static int getHabitAchievedCount() =>
+      _storage.read<int>(_keyHabitAchievedCount) ?? 0;
 
-  /// 완료 횟수 증가
-  static Future<void> incrementTodoCompletedCount() async {
-    final n = getTodoCompletedCount() + 1;
-    await _storage.write(_keyTodoCompletedCount, n);
+  /// 습관 달성 횟수 증가
+  static Future<void> incrementHabitAchievedCount() async {
+    final n = getHabitAchievedCount() + 1;
+    await _storage.write(_keyHabitAchievedCount, n);
   }
 
   /// 리뷰 요청 이미 했는지
@@ -66,14 +66,14 @@ class AppStorage {
   static Future<void> resetTutorialCompleted() =>
       _storage.write(_keyTutorialCompleted, false);
 
-  /// 튜토리얼용 할 일 생성 여부 (앱 최초 실행 시 1회)
-  static const String _keyTutorialTodoCreated = 'tutorial_todo_created';
+  /// 튜토리얼용 습관 생성 여부 (앱 최초 실행 시 1회, 추후 온보딩 연동)
+  static const String _keyTutorialHabitCreated = 'tutorial_habit_created';
 
-  static bool getTutorialTodoCreated() =>
-      _storage.read<bool>(_keyTutorialTodoCreated) ?? false;
+  static bool getTutorialHabitCreated() =>
+      _storage.read<bool>(_keyTutorialHabitCreated) ?? false;
 
-  static Future<void> setTutorialTodoCreated() =>
-      _storage.write(_keyTutorialTodoCreated, true);
+  static Future<void> setTutorialHabitCreated() =>
+      _storage.write(_keyTutorialHabitCreated, true);
 
   // ─── 화면 꺼짐 방지 (wakelock_plus) ─────────────────
   static const String _keyWakelock = 'wakelock_enabled';

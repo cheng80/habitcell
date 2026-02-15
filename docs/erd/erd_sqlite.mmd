@@ -1,0 +1,54 @@
+%% ERD - Habit App SQLite (Client)
+%% Local-first: SQLite가 데이터 원본(Source of Truth)
+%% Mermaid 문법 | GitHub/GitLab/mermaid.live에서 렌더링
+
+erDiagram
+    categories ||--o{ habits : "category_id"
+    habits ||--o{ habit_daily_logs : "habit_id"
+
+    categories {
+        string id PK "UUID"
+        string name "카테고리 이름"
+        int color_value "색상(0xAARRGGBB)"
+        int sort_order "정렬 순서"
+    }
+
+    habits {
+        string id PK "UUID"
+        string title "습관 이름"
+        int daily_target "일일 목표 횟수"
+        int sort_order "정렬 순서"
+        string category_id FK "categories.id, NULL=없음"
+        string deadline_reminder_time "마감 알림(HH:mm)"
+        int is_active "활성(1/0)"
+        int is_deleted "소프트 삭제(1/0)"
+        int is_dirty "미백업(1/0)"
+        string created_at "ISO8601 UTC"
+        string updated_at "ISO8601 UTC"
+    }
+
+    habit_daily_logs {
+        string id PK "UUID"
+        string habit_id FK "habits.id"
+        string date "YYYY-MM-DD"
+        int count "수행 횟수"
+        int is_completed "달성(1/0)"
+        int is_deleted "소프트 삭제(1/0)"
+        int is_dirty "미백업(1/0)"
+        string created_at "ISO8601 UTC"
+        string updated_at "ISO8601 UTC"
+    }
+
+    app_settings {
+        string key PK "설정 키"
+        string value "설정 값"
+        string updated_at "ISO8601 UTC"
+    }
+
+    heatmap_daily_snapshots {
+        string date PK "YYYY-MM-DD"
+        int achieved "달성 습관 수"
+        int total "활성 습관 수"
+        int level "달성률 레벨(0~4)"
+        string updated_at "ISO8601 UTC"
+    }

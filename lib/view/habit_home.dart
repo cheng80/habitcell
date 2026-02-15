@@ -57,7 +57,9 @@ class _HabitHomeState extends ConsumerState<HabitHome> {
         }
         final now = DateTime.now();
         final locale = context.locale.toString();
-        final todayStr = '${now.month}월 ${now.day}일 (${DateFormat.E(locale).format(now)})';
+        final dateStr = DateFormat.MMMd(locale).format(now);
+        final weekdayStr = DateFormat.E(locale).format(now);
+        final todayStr = '$dateStr ($weekdayStr)';
 
         final filteredItems = switch (_filter) {
           _HabitFilter.all => items,
@@ -74,7 +76,7 @@ class _HabitHomeState extends ConsumerState<HabitHome> {
               child: Row(
                 children: [
                   Text(
-                    '오늘, $todayStr',
+                    '${'today'.tr()}, $todayStr',
                     style: TextStyle(
                       color: p.textPrimary,
                       fontSize: 14,
@@ -375,7 +377,7 @@ Widget _buildEmptyState(AppColorScheme p) {
             style: TextStyle(color: p.textSecondary, fontSize: 16),
           ),
           Text(
-            '작은 시작이 하루를 바꿉니다',
+            'emptyHabitSubtitle'.tr(),
             style: TextStyle(color: p.textMeta, fontSize: 14),
           ),
         ],

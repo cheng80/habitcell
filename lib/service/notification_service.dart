@@ -1,11 +1,11 @@
 // notification_service.dart
-// 로컬 알람 - 습관 리마인드용 (추후 Habit reminder_time 연동)
+// 로컬 알람 - Pre-reminder(점심·저녁) + 마감 알림
 //
-// [현재 기능]
+// [기능]
 // - 앱 아이콘 배지: 예약된 알람 개수 (app_badge_plus), 앱 진입 시 clearBadge
+// - Pre-reminder: 점심·저녁에 오늘 습관 리마인드 (PreReminderNotifier 연동)
 // - 마감 알림: deadline_reminder_time 기반 예약 (Habit별)
 // - 타임존: Asia/Seoul 고정 (IANA ID, GPS 아님)
-// [추후] reminder_time 연동, 달성 시 알림 자동 취소
 
 import 'dart:math';
 
@@ -19,8 +19,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 /// 로컬 알람 서비스
 ///
-/// 습관 리마인드(reminder_time) 연동 예정.
-/// 현재: clearBadge, initialize, requestPermission만 사용.
+/// Pre-reminder + 마감 알림(deadline_reminder_time) 지원.
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
@@ -218,9 +217,9 @@ class NotificationService {
     await _updateBadgeCount(0);
   }
 
-  /// 알람 등록 (Habit reminder_time 연동 시 구현)
+  /// 알람 예약 (마감 알림 등에 사용)
   Future<int?> scheduleNotification(int id, String title, DateTime dueDate) async {
-    // TODO: Habit reminder_time 연동
+    // 마감 알림은 scheduleDeadlineReminders에서 별도 처리
     return null;
   }
 

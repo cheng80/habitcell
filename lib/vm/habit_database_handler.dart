@@ -20,6 +20,7 @@ import 'package:habitcell/model/category.dart';
 import 'package:habitcell/model/habit.dart';
 import 'package:habitcell/model/habit_daily_log.dart';
 import 'package:habitcell/util/app_locale.dart';
+import 'package:habitcell/util/app_storage.dart';
 
 /// 습관 + 오늘 count + 완료 여부 (홈 화면용)
 class HabitWithTodayCount {
@@ -68,7 +69,6 @@ class HabitDatabaseHandler {
             daily_target INTEGER NOT NULL DEFAULT 1,
             sort_order INTEGER NOT NULL DEFAULT 0,
             category_id TEXT DEFAULT NULL,
-            reminder_time TEXT DEFAULT NULL,
             deadline_reminder_time TEXT DEFAULT NULL,
             is_active INTEGER NOT NULL DEFAULT 1,
             is_deleted INTEGER NOT NULL DEFAULT 0,
@@ -283,7 +283,6 @@ class HabitDatabaseHandler {
     int dailyTarget = 1,
     int sortOrder = 0,
     String? categoryId,
-    String? reminderTime,
     String? deadlineReminderTime,
   }) async {
     final now = _nowUtc();
@@ -293,7 +292,6 @@ class HabitDatabaseHandler {
       dailyTarget: dailyTarget,
       sortOrder: sortOrder,
       categoryId: categoryId,
-      reminderTime: reminderTime,
       deadlineReminderTime: deadlineReminderTime,
       createdAt: now,
       updatedAt: now,
@@ -497,18 +495,20 @@ class HabitDatabaseHandler {
   }
 
   /// 오늘 완료 토글 (count >= target일 때만)
+  /// 완료 시 인앱 리뷰용 habit_achieved_count 증가
   Future<void> toggleCompleted(String habitId) async {
     final today = _dateToday();
     final existing = await getLogByHabitAndDate(habitId, today);
     if (existing == null) return;
     final habit = await getHabitById(habitId);
     if (habit == null || existing.count < habit.dailyTarget) return;
+    final becomingCompleted = !existing.isCompleted;
     final now = _nowUtc();
     final db = await database;
     await db.update(
       'habit_daily_logs',
       {
-        'is_completed': existing.isCompleted ? 0 : 1,
+        'is_completed': becomingCompleted ? 1 : 0,
         'is_dirty': 1,
         'updated_at': now,
       },
@@ -521,6 +521,9 @@ class HabitDatabaseHandler {
       where: 'id = ?',
       whereArgs: [habitId],
     );
+    if (becomingCompleted) {
+      await AppStorage.incrementHabitAchievedCount();
+    }
   }
 
   static String _dateToday() {

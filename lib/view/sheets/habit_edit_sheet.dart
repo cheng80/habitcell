@@ -76,7 +76,7 @@ class _HabitEditSheetState extends ConsumerState<HabitEditSheet> {
     final maximum = DateTime(now.year, now.month, now.day, 23, 59);
     if (minimum.isAfter(maximum)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('오늘은 더 이상 알림 시간을 설정할 수 없습니다')),
+        SnackBar(content: Text('deadlineReminderNoMore'.tr())),
       );
       return;
     }
@@ -254,7 +254,7 @@ class _HabitEditSheetState extends ConsumerState<HabitEditSheet> {
               Row(
                 children: [
                   Text(
-                    '마감 알림',
+                    'deadlineReminder'.tr(),
                     style: TextStyle(color: p.textPrimary, fontSize: 16),
                   ),
                   const Spacer(),

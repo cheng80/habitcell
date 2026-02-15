@@ -12,6 +12,12 @@
 - 홈 필터: 결과 없을 때도 날짜·필터 버튼 유지
 - Drawer 스낵바: showOverlaySnackBar로 드로어 위에 표시
 - 통계: 전체/습관별 카드, 카테고리 색상, 없음=회색
+- **앱 아이콘/스플래시**: HabitCell 로고 (히트맵+체크마크), flutter_launcher_icons/flutter_native_splash 적용
+- **reminder_time 제거**: Pre-reminder + 마감 알림만 유지
+- **6.1, 6.3 마이그레이션**: AppStorage habit_app용, InAppReviewService habit_achieved_count
+- **ERD**: sqlite/mysql 분리 (erd_sqlite.mmd, erd_mysql.mmd)
+- **docs 갱신**: sqlite_schema_v1, habit_app_db_schema_master, master_habit_app_spec, GOOGLE_STITCH_PROMPTS
+- **iOS 스플래시 캐시**: scripts/ios_splash_clean.sh (캐시 버스팅)
 
 ---
 
@@ -93,7 +99,6 @@
 - [x] 습관 삭제: is_deleted=true (소프트 삭제)
 - [x] 습관 목록: is_deleted=false만 조회, sort_order 정렬
 - [x] sort_order: 카드 오른쪽 드래그 핸들로 순서 변경
-- [ ] reminder_time (추후)
 
 ### 2.2 일별 기록 (+1/-1)
 - [x] 홈 화면: 습관별 오늘 카운트 표시
@@ -125,10 +130,10 @@
 - [x] 분석 탭: 전체/습관별 통계 카드 표시
 
 ### 2.5 로컬 알림
-- [ ] reminder_time: 습관별 HH:mm에 로컬 알림 예약
+- [x] Pre-reminder: 점심·저녁에 오늘 습관 리마인드 (Drawer 토글)
 - [x] 마감 알림: 습관별 사용자 지정 시간 (deadline_reminder_time, HH:mm)
-- [ ] 달성 시 자동 취소: 당일 목표 달성 시 해당 습관 알림 + 마감 알림 취소
-- [ ] flutter_local_notifications 연동 (기존 NotificationService 활용/수정)
+- [ ] 달성 시 자동 취소: 당일 목표 달성 시 해당 습관 마감 알림 취소
+- [x] flutter_local_notifications 연동 (NotificationService)
 
 ---
 
@@ -238,19 +243,18 @@
 ### 5.4 습관 편집
 - [x] title (maxLength 30, 글자수 표시), daily_target 입력
 - [x] 카테고리 선택 (5열 그리드, 프리셋+전체 색상)
-- [ ] reminder_time (추후)
 
 ---
 
 ## 6. 기존 TagDo 기능 검토
 
 ### 6.1 유지 (습관앱에 맞게 수정)
-- [ ] 테마 시스템 (ThemeNotifier, CommonColorScheme)
-- [ ] 다국어 (easy_localization)
-- [ ] 로컬 알림 (NotificationService, flutter_local_notifications)
-- [ ] 앱 아이콘/스플래시
-- [ ] Drawer 구조
-- [ ] MVVM 패턴 (Handler, Notifier)
+- [x] 테마 시스템 (ThemeNotifier, CommonColorScheme)
+- [x] 다국어 (easy_localization)
+- [x] 로컬 알림 (NotificationService, flutter_local_notifications)
+- [x] 앱 아이콘/스플래시
+- [x] Drawer 구조
+- [x] MVVM 패턴 (Handler, Notifier)
 
 ### 6.2 제거 또는 대체
 - [x] Todo 모델 → Habit 모델
@@ -260,9 +264,9 @@
 - [x] TagHandler, TagListNotifier → CategoryListNotifier
 
 ### 6.3 수정/마이그레이션
-- [ ] AppStorage: tutorial_completed 등 → habit_app용 키로 정리
-- [ ] InAppReviewService: todo_completed_count → habit 관련 지표로 변경
-- [ ] 번역 파일: Todo 관련 → Habit 관련 문자열
+- [x] AppStorage: habit_achieved_count, tutorial_habit_created 등 habit_app용 키로 정리
+- [x] InAppReviewService: habit_achieved_count 기반 리뷰 조건 (달성 시 increment)
+- [x] 번역 파일: emptyTodoHint 제거 (미사용)
 
 ---
 
@@ -297,11 +301,11 @@
 
 ## 10. 수정 필요 사항 (검토)
 
-### 10.1 pubspec.yaml
+### 10.1 pubspec.yaml (튜토리얼은 앱 구현 마무리 후)
 - [x] hive, hive_flutter 제거
 - [x] flutter_colorpicker: 카테고리 색상 선택용
-- [ ] showcaseview: 튜토리얼 → 습관앱 온보딩으로 수정
-- [ ] in_app_review: habit 관련 지표로 조건 변경
+- [ ] showcaseview: 앱 구현 마무리 후 습관앱 온보딩으로 수정
+- [x] in_app_review: habit_achieved_count 기반 조건 변경
 
 ### 10.2 기존 문서
 - [x] README.md: HabitCell 반영

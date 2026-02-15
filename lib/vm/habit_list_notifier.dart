@@ -26,7 +26,6 @@ class HabitListNotifier extends AsyncNotifier<List<HabitWithTodayCount>> {
     required String title,
     int dailyTarget = 1,
     String? categoryId,
-    String? reminderTime,
     String? deadlineReminderTime,
   }) async {
     final habits = await _dbHandler.getAllHabits();
@@ -36,7 +35,6 @@ class HabitListNotifier extends AsyncNotifier<List<HabitWithTodayCount>> {
       dailyTarget: dailyTarget,
       sortOrder: sortOrder,
       categoryId: categoryId,
-      reminderTime: reminderTime,
       deadlineReminderTime: deadlineReminderTime,
     );
     ref.invalidateSelf();

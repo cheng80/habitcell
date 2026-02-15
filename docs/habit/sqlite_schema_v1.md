@@ -19,43 +19,62 @@
 ```sql
 PRAGMA foreign_keys = ON;
 
--- 스키마 버전 (마이그레이션용)
--- app_settings에 schema_version=1 저장
+-- categories: 습관 카테고리 (건강, 집중, 독서 등)
+CREATE TABLE IF NOT EXISTS categories (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  color_value INTEGER NOT NULL DEFAULT 0xFF9E9E9E,
+  sort_order INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_categories_sort ON categories(sort_order);
 
-CREATE TABLE habits (
+-- habits: 습관
+CREATE TABLE IF NOT EXISTS habits (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
   daily_target INTEGER NOT NULL DEFAULT 1,
   sort_order INTEGER NOT NULL DEFAULT 0,
-  reminder_time TEXT DEFAULT NULL,
+  category_id TEXT DEFAULT NULL,
+  deadline_reminder_time TEXT DEFAULT NULL,
   is_active INTEGER NOT NULL DEFAULT 1,
   is_deleted INTEGER NOT NULL DEFAULT 0,
   is_dirty INTEGER NOT NULL DEFAULT 1,
   created_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
 );
-
 CREATE INDEX idx_habits_active ON habits(is_active);
 CREATE INDEX idx_habits_updated ON habits(updated_at);
 
-CREATE TABLE habit_daily_logs (
+-- habit_daily_logs: 일별 수행 기록
+CREATE TABLE IF NOT EXISTS habit_daily_logs (
   id TEXT PRIMARY KEY,
   habit_id TEXT NOT NULL,
   date TEXT NOT NULL,
   count INTEGER NOT NULL DEFAULT 0,
+  is_completed INTEGER NOT NULL DEFAULT 0,
   is_deleted INTEGER NOT NULL DEFAULT 0,
   is_dirty INTEGER NOT NULL DEFAULT 1,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   FOREIGN KEY (habit_id) REFERENCES habits(id) ON DELETE CASCADE
 );
-
 CREATE UNIQUE INDEX uk_habit_date ON habit_daily_logs(habit_id, date);
 CREATE INDEX idx_logs_updated ON habit_daily_logs(updated_at);
 
-CREATE TABLE app_settings (
+-- app_settings: key-value 설정 (스키마 버전, device_uuid 등)
+CREATE TABLE IF NOT EXISTS app_settings (
   key TEXT PRIMARY KEY,
   value TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+-- heatmap_daily_snapshots: 날짜별 달성률 스냅샷 (히트맵용)
+CREATE TABLE IF NOT EXISTS heatmap_daily_snapshots (
+  date TEXT PRIMARY KEY,
+  achieved INTEGER NOT NULL DEFAULT 0,
+  total INTEGER NOT NULL DEFAULT 0,
+  level INTEGER NOT NULL DEFAULT 0,
   updated_at TEXT NOT NULL
 );
 ```
@@ -64,7 +83,16 @@ CREATE TABLE app_settings (
 
 ## 3. 테이블 상세
 
-### 3.1 habits
+### 3.1 categories
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | TEXT | PK, UUID |
+| name | TEXT | 카테고리 이름 |
+| color_value | INTEGER | 색상 값 (0xAARRGGBB) |
+| sort_order | INTEGER | 정렬 순서 |
+
+### 3.2 habits
 
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
@@ -72,14 +100,15 @@ CREATE TABLE app_settings (
 | title | TEXT | 습관 이름 |
 | daily_target | INTEGER | 일일 목표 횟수 (기본 1) |
 | sort_order | INTEGER | 정렬 순서 |
-| reminder_time | TEXT | 리마인드 시간 (HH:mm, nullable) |
+| category_id | TEXT | FK → categories(id), NULL = 없음 |
+| deadline_reminder_time | TEXT | 마감 알림 시간 (HH:mm, nullable) |
 | is_active | INTEGER | 활성 여부 (1/0) |
 | is_deleted | INTEGER | 소프트 삭제 (1/0) |
 | is_dirty | INTEGER | 변경 후 미백업 (1/0) |
 | created_at | TEXT | 생성 시각 (ISO8601 UTC) |
 | updated_at | TEXT | 수정 시각 (ISO8601 UTC) |
 
-### 3.2 habit_daily_logs
+### 3.3 habit_daily_logs
 
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
@@ -87,6 +116,7 @@ CREATE TABLE app_settings (
 | habit_id | TEXT | FK → habits(id) |
 | date | TEXT | 날짜 (YYYY-MM-DD) |
 | count | INTEGER | 수행 횟수 |
+| is_completed | INTEGER | 달성 여부 (count >= daily_target 시 1) |
 | is_deleted | INTEGER | 소프트 삭제 (1/0) |
 | is_dirty | INTEGER | 변경 후 미백업 (1/0) |
 | created_at | TEXT | 생성 시각 |
@@ -94,29 +124,51 @@ CREATE TABLE app_settings (
 
 - **유니크**: (habit_id, date) — 하루 1행
 
-### 3.3 app_settings (key-value)
+### 3.4 app_settings (key-value)
 
 | key | 용도 |
 |-----|------|
 | schema_version | 스키마 버전 (마이그레이션) |
+| app_locale | 앱 로케일 (카테고리 초기화용) |
 | device_uuid | 기기 식별자 (백업/복구 시 사용, 추후) |
-| heatmap_theme | 잔디 색상 테마 (github, ocean, sunset 등) |
-| auto_backup_enabled | 자동 백업 ON/OFF |
-| cooldown_minutes | 백업 쿨다운(분) |
-| last_backup_at | 마지막 백업 시각 |
-| deadline_reminder_enabled | 마감 알림(21:00) ON/OFF |
+| last_backup_at | 마지막 백업 시각 (추후) |
+
+> **참고**: 테마, 잔디 색상, 미리 알림, 화면 꺼짐 등은 GetStorage에 저장됨.
+
+### 3.5 heatmap_daily_snapshots
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| date | TEXT | PK, 날짜 (YYYY-MM-DD) |
+| achieved | INTEGER | 달성한 습관 수 |
+| total | INTEGER | 해당 시점 활성 습관 수 |
+| level | INTEGER | 달성률 기반 레벨 (0~4) |
+| updated_at | TEXT | 수정 시각 |
+
+- **용도**: 과거 날짜의 "해당 시점에 존재했던 습관" 기준 달성률 (히트맵 정확도)
 
 ---
 
-## 4. 구현 참조
+## 4. 마이그레이션 (onUpgrade)
 
-- DDL: `lib/db/habit_db_schema.dart`
+| oldVersion | 변경 |
+|------------|------|
+| < 2 | habit_daily_logs에 is_completed 추가 |
+| < 3 | habits에 deadline_reminder_time 추가 |
+| < 4 | categories 테이블 생성, habits에 category_id 추가 |
+| < 5 | heatmap_daily_snapshots 테이블 생성 |
+
+---
+
+## 5. 구현 참조
+
 - Handler: `lib/vm/habit_database_handler.dart`
-- 모델: `lib/model/habit.dart`, `lib/model/habit_daily_log.dart`
+- 모델: `lib/model/habit.dart`, `lib/model/habit_daily_log.dart`, `lib/model/category.dart`
+- 참고 DDL: `lib/db/habit_db_schema.dart` (간략 버전)
 
 ---
 
-## 5. 후순위 (현재 미구현)
+## 6. 후순위 (현재 미구현)
 
 - MySQL 스키마 (백업 저장소)
 - FastAPI (백업/복구 API)
