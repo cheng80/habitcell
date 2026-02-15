@@ -1,0 +1,266 @@
+{
+  "version": "2.7",
+  "children": [
+    {
+      "type": "frame",
+      "id": "bi8Au",
+      "x": 0,
+      "y": 0,
+      "name": "Frame",
+      "clip": true,
+      "width": 800,
+      "height": 600,
+      "fill": "#F4F4F5",
+      "layout": "vertical",
+      "padding": 24,
+      "justifyContent": "center",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "5EVUk",
+          "name": "Edit Sheet",
+          "width": 360,
+          "fill": "#FFFFFF",
+          "cornerRadius": 16,
+          "stroke": {
+            "align": "inside",
+            "thickness": 1.5,
+            "fill": "#E4E4E7"
+          },
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 24,
+          "children": [
+            {
+              "type": "frame",
+              "id": "ZRR5C",
+              "name": "header",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "8WKQl",
+                  "name": "title",
+                  "fill": "#18181B",
+                  "content": "날짜/시간 선택",
+                  "fontFamily": "Inter",
+                  "fontSize": 20,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "N8y7C",
+                  "name": "subtitle",
+                  "fill": "#71717A",
+                  "content": "일정을 편집할 날짜와 시간을 선택하세요",
+                  "fontFamily": "Inter",
+                  "fontSize": 14
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "iqWMa",
+              "name": "dateSection",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "1CE7h",
+                  "name": "dateLabel",
+                  "fill": "#71717A",
+                  "content": "날짜",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "frame",
+                  "id": "Qawx7",
+                  "name": "dateField",
+                  "width": "fill_container",
+                  "height": 48,
+                  "fill": "transparent",
+                  "cornerRadius": 12,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1.5,
+                    "fill": "#E4E4E7"
+                  },
+                  "gap": 12,
+                  "padding": [
+                    0,
+                    16
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon_font",
+                      "id": "lspV2",
+                      "name": "dateIcon",
+                      "width": 20,
+                      "height": 20,
+                      "iconFontName": "calendar",
+                      "iconFontFamily": "lucide",
+                      "fill": "#71717A"
+                    },
+                    {
+                      "type": "text",
+                      "id": "NdQaX",
+                      "name": "dateValue",
+                      "fill": "#18181B",
+                      "content": "2025년 2월 11일",
+                      "fontFamily": "Inter",
+                      "fontSize": 15
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "EQW1g",
+              "name": "timeSection",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "zNHEU",
+                  "name": "timeLabel",
+                  "fill": "#71717A",
+                  "content": "시간",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "frame",
+                  "id": "U47z7",
+                  "name": "timeField",
+                  "width": "fill_container",
+                  "height": 48,
+                  "fill": "transparent",
+                  "cornerRadius": 12,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1.5,
+                    "fill": "#E4E4E7"
+                  },
+                  "gap": 12,
+                  "padding": [
+                    0,
+                    16
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon_font",
+                      "id": "MOaot",
+                      "name": "timeIcon",
+                      "width": 20,
+                      "height": 20,
+                      "iconFontName": "clock-4",
+                      "iconFontFamily": "lucide",
+                      "fill": "#71717A"
+                    },
+                    {
+                      "type": "text",
+                      "id": "IT9Jy",
+                      "name": "timeValue",
+                      "fill": "#18181B",
+                      "content": "오후 3:30",
+                      "fontFamily": "Inter",
+                      "fontSize": 15
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "xEp9t",
+              "name": "actions",
+              "width": "fill_container",
+              "gap": 12,
+              "padding": [
+                8,
+                0,
+                0,
+                0
+              ],
+              "justifyContent": "end",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "H5B5Q",
+                  "name": "cancelBtn",
+                  "height": 40,
+                  "fill": "transparent",
+                  "cornerRadius": 8,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1.5,
+                    "fill": "#E4E4E7"
+                  },
+                  "gap": 6,
+                  "padding": [
+                    8,
+                    16
+                  ],
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "6a7EQ",
+                      "name": "cancelText",
+                      "fill": "#71717A",
+                      "content": "취소",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "nymj1",
+                  "name": "saveBtn",
+                  "height": 40,
+                  "fill": "#2563EB",
+                  "cornerRadius": 8,
+                  "gap": 6,
+                  "padding": [
+                    8,
+                    16
+                  ],
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "VycHM",
+                      "name": "saveText",
+                      "fill": "#FFFFFF",
+                      "content": "저장",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+@startuml TagDo System Architecture
+
+' ================== 레이아웃 ==================
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundCorner 20
+
+' ================== 공통 스타일 ==================
+skinparam arrow {
+  Color #7F8C8D
+  FontColor #2C3E50
+  FontSize 11
+}
+
+skinparam defaultTextAlignment center
+
+skinparam rectangle {
+  BorderColor #2C3E50
+  FontColor #2C3E50
+  FontSize 12
+}
+
+' ================== APP ==================
+rectangle "📱 APP\n\n**TagDo**\n\nFlutter\nState Management:\n**Riverpod**" as App #E8F4FD
+
+' ================== LOCAL STORAGE ==================
+database "Hive\n\nTodo Box\nTag Box" as Hive #E8F8F5
+
+rectangle "🔔 Notification\n\n- flutter_local_notifications" as Notif #FFF3E0
+
+rectangle "⚙️ GetStorage\n\n- Theme\n- Locale" as Storage #FDEDEC
+
+' ================== 연결 ==================
+App --> Hive : CRUD
+App --> Notif : Schedule/Cancel
+App --> Storage : Preferences
+
+@enduml
