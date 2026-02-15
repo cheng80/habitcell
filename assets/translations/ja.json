@@ -92,5 +92,9 @@
   "langEn": "English",
   "langJa": "日本語",
   "langZhCN": "简体中文",
-  "langZhTW": "繁體中文"
+  "langZhTW": "繁體中文",
+  "collapseAll": "一括で折りたたむ",
+  "expandAll": "一括で展開",
+  "filterEmptyCompleted": "完了した習慣がありません",
+  "filterEmptyUncompleted": "未完了の習慣がありません"
 }

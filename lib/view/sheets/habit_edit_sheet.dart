@@ -26,18 +26,22 @@ class HabitEditSheet extends ConsumerStatefulWidget {
 
 class _HabitEditSheetState extends ConsumerState<HabitEditSheet> {
   late TextEditingController _titleController;
-  late TextEditingController _targetController;
+  int _dailyTarget = 1;
   bool _deadlineReminderEnabled = false;
   TimeOfDay _deadlineReminderTime = const TimeOfDay(hour: 21, minute: 0);
   String? _selectedCategoryId;
+
+  static const int _targetMin = 1;
+  static const int _targetMax = 99;
+
+  bool get _canSave => _titleController.text.trim().isNotEmpty;
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.update?.title ?? '');
-    _targetController = TextEditingController(
-      text: (widget.update?.dailyTarget ?? 1).toString(),
-    );
+    _dailyTarget = (widget.update?.dailyTarget ?? 1).clamp(_targetMin, _targetMax);
+    _titleController.addListener(() => setState(() {}));
     _selectedCategoryId = widget.update?.categoryId;
     final dt = widget.update?.deadlineReminderTime;
     if (dt != null && dt.isNotEmpty) {
@@ -55,7 +59,6 @@ class _HabitEditSheetState extends ConsumerState<HabitEditSheet> {
   @override
   void dispose() {
     _titleController.dispose();
-    _targetController.dispose();
     super.dispose();
   }
 
@@ -109,8 +112,7 @@ class _HabitEditSheetState extends ConsumerState<HabitEditSheet> {
       ).showSnackBar(SnackBar(content: Text('contentRequired'.tr())));
       return;
     }
-    final target = int.tryParse(_targetController.text.trim()) ?? 1;
-    final dailyTarget = target < 1 ? 1 : target;
+    final dailyTarget = _dailyTarget;
     final deadlineReminderTime = _deadlineReminderEnabled
         ? _timeToStr(_deadlineReminderTime)
         : null;
@@ -170,6 +172,7 @@ class _HabitEditSheetState extends ConsumerState<HabitEditSheet> {
                 decoration: InputDecoration(
                   labelText: 'habitTitle'.tr(),
                   hintText: 'habitTitleHint'.tr(),
+                  hintStyle: TextStyle(color: p.textSecondary),
                   counterStyle: TextStyle(color: p.textSecondary, fontSize: 12),
                   border: OutlineInputBorder(
                     borderRadius: ConfigUI.inputRadius,
@@ -183,21 +186,60 @@ class _HabitEditSheetState extends ConsumerState<HabitEditSheet> {
                 onSubmitted: (_) => FocusScope.of(context).nextFocus(),
               ),
               const SizedBox(height: 16),
-              TextField(
-                controller: _targetController,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: InputDecoration(
-                  labelText: 'habitDailyTarget'.tr(),
-                  hintText: '1',
-                  border: OutlineInputBorder(
-                    borderRadius: ConfigUI.inputRadius,
+              Row(
+                children: [
+                  Text(
+                    'habitDailyTarget'.tr(),
+                    style: TextStyle(
+                      color: p.textPrimary,
+                      fontSize: 16,
+                    ),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: ConfigUI.inputPaddingH,
-                    vertical: ConfigUI.inputPaddingV,
+                  const Spacer(),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton.filled(
+                        onPressed: _dailyTarget > _targetMin
+                            ? () {
+                                HapticFeedback.selectionClick();
+                                setState(() => _dailyTarget--);
+                              }
+                            : null,
+                        icon: const Icon(Icons.remove, size: 20),
+                        style: IconButton.styleFrom(
+                          padding: const EdgeInsets.all(8),
+                          minimumSize: const Size(40, 40),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 48,
+                        child: Text(
+                          '$_dailyTarget',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: p.textPrimary,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      IconButton.filled(
+                        onPressed: _dailyTarget < _targetMax
+                            ? () {
+                                HapticFeedback.selectionClick();
+                                setState(() => _dailyTarget++);
+                              }
+                            : null,
+                        icon: const Icon(Icons.add, size: 20),
+                        style: IconButton.styleFrom(
+                          padding: const EdgeInsets.all(8),
+                          minimumSize: const Size(40, 40),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
+                ],
               ),
               const SizedBox(height: 16),
               EditSheetCategorySelector(
@@ -243,10 +285,12 @@ class _HabitEditSheetState extends ConsumerState<HabitEditSheet> {
                     child: Text('cancel'.tr()),
                   ),
                   FilledButton(
-                    onPressed: () {
-                      HapticFeedback.mediumImpact();
-                      _onSave();
-                    },
+                    onPressed: _canSave
+                        ? () {
+                            HapticFeedback.mediumImpact();
+                            _onSave();
+                          }
+                        : null,
                     child: Text(isUpdate ? 'change'.tr() : 'save'.tr()),
                   ),
                 ],

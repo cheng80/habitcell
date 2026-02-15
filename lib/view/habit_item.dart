@@ -26,6 +26,7 @@ class HabitItem extends ConsumerWidget {
   final double? leftMargin;
   final double? rightMargin;
   final bool isHighlighted;
+  final bool isExpanded;
 
   const HabitItem({
     super.key,
@@ -35,6 +36,7 @@ class HabitItem extends ConsumerWidget {
     this.leftMargin,
     this.rightMargin,
     this.isHighlighted = false,
+    this.isExpanded = true,
   });
 
   @override
@@ -86,38 +88,56 @@ class HabitItem extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (category != null) _buildCategoryBar(category),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: 8,
-                  children: [
-                    _buildHeaderRow(context, ref, habit, p, onTap),
-                    Divider(color: p.divider, height: 1),
-                    _buildCountRow(
-                      habit,
-                      todayCount,
-                      target,
-                      achieved,
-                      isCompleted,
-                      p,
-                      ref,
-                    ),
-                    _CellGrid(
-                      count: todayCount,
-                      target: target,
-                      isCompleted: isCompleted,
-                      onFill: () => ref
-                          .read(habitListProvider.notifier)
-                          .incrementCount(habit.id),
-                      onUnfill: () => ref
-                          .read(habitListProvider.notifier)
-                          .decrementCount(habit.id),
-                      palette: p,
-                    ),
-                  ],
+              ExpansionTile(
+                key: ValueKey('${habit.id}_$isExpanded'),
+                initiallyExpanded: isExpanded,
+                tilePadding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+                controlAffinity: ListTileControlAffinity.trailing,
+                backgroundColor: Colors.transparent,
+                collapsedBackgroundColor: Colors.transparent,
+                shape: const RoundedRectangleBorder(
+                  side: BorderSide.none,
                 ),
+                collapsedShape: const RoundedRectangleBorder(
+                  side: BorderSide.none,
+                ),
+                expandedAlignment: Alignment.topLeft,
+                title: _buildHeaderRow(context, ref, habit, p, onTap),
+                children: [
+                  Divider(color: p.divider, height: 1),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 8,
+                      children: [
+                        _buildCountRow(
+                          habit,
+                          todayCount,
+                          target,
+                          achieved,
+                          isCompleted,
+                          p,
+                          ref,
+                        ),
+                        _CellGrid(
+                          count: todayCount,
+                          target: target,
+                          isCompleted: isCompleted,
+                          onFill: () => ref
+                              .read(habitListProvider.notifier)
+                              .incrementCount(habit.id),
+                          onUnfill: () => ref
+                              .read(habitListProvider.notifier)
+                              .decrementCount(habit.id),
+                          palette: p,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

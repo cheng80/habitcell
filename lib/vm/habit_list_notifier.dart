@@ -65,16 +65,8 @@ class HabitListNotifier extends AsyncNotifier<List<HabitWithTodayCount>> {
   }
 
   /// 오늘 완료 토글 (count >= target일 때만)
-  /// 완료 시 해당 습관을 목록 맨 아래로 이동 (sort_order 업데이트)
   Future<void> toggleCompleted(String habitId) async {
     await _dbHandler.toggleCompleted(habitId);
-    final items = await _dbHandler.getHabitsWithTodayCount();
-    final completedIds = items.where((e) => e.isCompleted).map((e) => e.habit.id).toList();
-    final notCompletedIds = items.where((e) => !e.isCompleted).map((e) => e.habit.id).toList();
-    if (completedIds.isNotEmpty) {
-      final newOrder = [...notCompletedIds, ...completedIds];
-      await _dbHandler.reorderHabits(newOrder);
-    }
     ref.invalidateSelf();
   }
 

@@ -3,6 +3,8 @@
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitcell/theme/app_colors.dart';
 import 'package:habitcell/theme/config_ui.dart';
@@ -22,8 +24,12 @@ class HabitHome extends ConsumerStatefulWidget {
   ConsumerState<HabitHome> createState() => _HabitHomeState();
 }
 
+enum _HabitFilter { all, completed, uncompleted }
+
 class _HabitHomeState extends ConsumerState<HabitHome> {
   String? _selectedForDeleteId;
+  bool _allExpanded = true;
+  _HabitFilter _filter = _HabitFilter.all;
 
   @override
   Widget build(BuildContext context) {
@@ -46,68 +52,181 @@ class _HabitHomeState extends ConsumerState<HabitHome> {
           return _buildEmptyState(p);
         }
         final now = DateTime.now();
-        final todayStr = '${now.month}월 ${now.day}일';
+        final locale = context.locale.toString();
+        final todayStr = '${now.month}월 ${now.day}일 (${DateFormat.E(locale).format(now)})';
 
-        return CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                child: Text(
-                  '오늘, $todayStr',
-                  style: TextStyle(
-                    color: p.textSecondary,
-                    fontSize: 14,
+        final filteredItems = switch (_filter) {
+          _HabitFilter.all => items,
+          _HabitFilter.completed => items.where((e) => e.isCompleted).toList(),
+          _HabitFilter.uncompleted => items.where((e) => !e.isCompleted).toList(),
+        };
+
+        if (filteredItems.isEmpty) {
+          return _buildFilteredEmptyState(p, _filter);
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: Row(
+                children: [
+                  Text(
+                    '오늘, $todayStr',
+                    style: TextStyle(
+                      color: p.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
+                  const Spacer(),
+                  OutlinedButton(
+                    onPressed: () {
+                      HapticFeedback.selectionClick();
+                      setState(() => _allExpanded = false);
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: p.textPrimary,
+                      side: BorderSide(color: p.divider),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text('collapseAll'.tr(), style: const TextStyle(fontSize: 13)),
+                  ),
+                  const SizedBox(width: 8),
+                  OutlinedButton(
+                    onPressed: () {
+                      HapticFeedback.selectionClick();
+                      setState(() => _allExpanded = true);
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: p.textPrimary,
+                      side: BorderSide(color: p.divider),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text('expandAll'.tr(), style: const TextStyle(fontSize: 13)),
+                  ),
+                ],
               ),
             ),
-            SliverReorderableList(
-              onReorder: (oldIndex, newIndex) async {
-                if (oldIndex < newIndex) newIndex--;
-                final ids = items.map((e) => e.habit.id).toList();
-                final id = ids.removeAt(oldIndex);
-                ids.insert(newIndex, id);
-                await ref.read(habitListProvider.notifier).reorderHabits(ids);
-              },
-              proxyDecorator: (child, index, animation) =>
-                  _buildDragProxyDecorator(p, child, animation),
-              itemBuilder: (context, index) {
-                final item = items[index];
-                return Row(
-                  key: ValueKey(item.habit.id),
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: HabitItem(
-                        item: item,
-                        onTap: () => _showEditSheet(item: item),
-                        onLongPress: () => _showDeleteSheet(context, item),
-                        rightMargin: 8,
-                        isHighlighted: item.habit.id == _selectedForDeleteId,
-                      ),
-                    ),
-                    ReorderableDragStartListener(
-                      index: index,
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          left: 4,
-                          right: 4,
-                          top: 20,
-                        ),
-                        child: Icon(
-                          Icons.drag_handle,
-                          color: p.textSecondary,
-                          size: 24,
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-              itemCount: items.length,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+              child: Row(
+                spacing: 8,
+                children: [
+                  _FilterChip(
+                    label: 'all'.tr(),
+                    selected: _filter == _HabitFilter.all,
+                    onSelected: () {
+                      HapticFeedback.selectionClick();
+                      setState(() => _filter = _HabitFilter.all);
+                    },
+                    palette: p,
+                  ),
+                  _FilterChip(
+                    label: 'checked'.tr(),
+                    selected: _filter == _HabitFilter.completed,
+                    onSelected: () {
+                      HapticFeedback.selectionClick();
+                      setState(() => _filter = _HabitFilter.completed);
+                    },
+                    palette: p,
+                  ),
+                  _FilterChip(
+                    label: 'unchecked'.tr(),
+                    selected: _filter == _HabitFilter.uncompleted,
+                    onSelected: () {
+                      HapticFeedback.selectionClick();
+                      setState(() => _filter = _HabitFilter.uncompleted);
+                    },
+                    palette: p,
+                  ),
+                ],
+              ),
             ),
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+            Expanded(
+              child: CustomScrollView(
+                slivers: [
+                  if (_filter == _HabitFilter.all)
+                    SliverReorderableList(
+                      onReorder: (oldIndex, newIndex) async {
+                        if (oldIndex < newIndex) newIndex--;
+                        final ids = items.map((e) => e.habit.id).toList();
+                        final id = ids.removeAt(oldIndex);
+                        ids.insert(newIndex, id);
+                        await ref.read(habitListProvider.notifier).reorderHabits(ids);
+                      },
+                      proxyDecorator: (child, index, animation) =>
+                          _buildDragProxyDecorator(p, child, animation),
+                      itemBuilder: (context, index) {
+                        final item = filteredItems[index];
+                        return Row(
+                          key: ValueKey(item.habit.id),
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: HabitItem(
+                                item: item,
+                                onTap: () => _showEditSheet(item: item),
+                                onLongPress: () => _showDeleteSheet(context, item),
+                                rightMargin: 8,
+                                isHighlighted: item.habit.id == _selectedForDeleteId,
+                                isExpanded: _allExpanded,
+                              ),
+                            ),
+                            ReorderableDragStartListener(
+                              index: index,
+                              child: Padding(
+                                padding: const EdgeInsets.only(
+                                  left: 4,
+                                  right: 4,
+                                  top: 20,
+                                ),
+                                child: Icon(
+                                  Icons.drag_handle,
+                                  color: p.textSecondary,
+                                  size: 24,
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                      itemCount: filteredItems.length,
+                    )
+                  else
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final item = filteredItems[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(
+                              left: ConfigUI.listItemMarginLeft,
+                              right: ConfigUI.listItemMarginRight + 32,
+                              top: ConfigUI.listItemMarginTop,
+                              bottom: ConfigUI.listItemMarginBottom,
+                            ),
+                            child: HabitItem(
+                              item: item,
+                              onTap: () => _showEditSheet(item: item),
+                              onLongPress: () => _showDeleteSheet(context, item),
+                              rightMargin: 0,
+                              isHighlighted: item.habit.id == _selectedForDeleteId,
+                              isExpanded: _allExpanded,
+                            ),
+                          );
+                        },
+                        childCount: filteredItems.length,
+                      ),
+                    ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                ],
+              ),
+            ),
           ],
         );
       },
@@ -182,6 +301,55 @@ class _HabitHomeState extends ConsumerState<HabitHome> {
   void _reloadData() {
     ref.read(habitListProvider.notifier).reloadData();
   }
+}
+
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onSelected;
+  final AppColorScheme palette;
+
+  const _FilterChip({
+    required this.label,
+    required this.selected,
+    required this.onSelected,
+    required this.palette,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return FilterChip(
+      label: Text(label, style: TextStyle(fontSize: 13)),
+      selected: selected,
+      onSelected: (_) => onSelected(),
+      selectedColor: palette.chipSelectedBg,
+      checkmarkColor: palette.chipSelectedText,
+      labelStyle: TextStyle(
+        color: selected ? palette.chipSelectedText : palette.chipUnselectedText,
+        fontSize: 13,
+      ),
+      backgroundColor: palette.chipUnselectedBg,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      showCheckmark: false,
+    );
+  }
+}
+
+Widget _buildFilteredEmptyState(AppColorScheme p, _HabitFilter filter) {
+  final message = switch (filter) {
+    _HabitFilter.all => '',
+    _HabitFilter.completed => 'filterEmptyCompleted'.tr(),
+    _HabitFilter.uncompleted => 'filterEmptyUncompleted'.tr(),
+  };
+  return Center(
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Text(
+        message,
+        style: TextStyle(color: p.textSecondary, fontSize: 16),
+      ),
+    ),
+  );
 }
 
 Widget _buildEmptyState(AppColorScheme p) {

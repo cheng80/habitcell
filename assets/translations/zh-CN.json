@@ -92,5 +92,9 @@
   "langEn": "English",
   "langJa": "日本語",
   "langZhCN": "简体中文",
-  "langZhTW": "繁體中文"
+  "langZhTW": "繁體中文",
+  "collapseAll": "全部收起",
+  "expandAll": "全部展开",
+  "filterEmptyCompleted": "没有已完成的习惯",
+  "filterEmptyUncompleted": "没有未完成的习惯"
 }
