@@ -2,7 +2,7 @@
 // docs/habit/sqlite_schema_v1.md (SQLite 확정 스키마)
 
 /// 습관 앱 SQLite 스키마 (클라이언트)
-/// - habits, habit_daily_logs, app_settings
+/// - habits, habit_daily_logs (기기 설정은 AppStorage 사용, 백업 제외)
 const String habitDbSchema = '''
 PRAGMA foreign_keys = ON;
 
@@ -35,10 +35,4 @@ CREATE TABLE IF NOT EXISTS habit_daily_logs (
 
 CREATE UNIQUE INDEX IF NOT EXISTS uk_habit_date ON habit_daily_logs(habit_id, date);
 CREATE INDEX IF NOT EXISTS idx_logs_updated ON habit_daily_logs(updated_at);
-
-CREATE TABLE IF NOT EXISTS app_settings (
-  key TEXT PRIMARY KEY,
-  value TEXT NOT NULL,
-  updated_at TEXT NOT NULL
-);
 ''';

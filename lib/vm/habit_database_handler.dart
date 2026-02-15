@@ -32,7 +32,7 @@ class HabitWithTodayCount {
 }
 
 /// 습관 앱 SQLite DB Handler
-/// habits, habit_daily_logs, app_settings CRUD
+/// habits, habit_daily_logs, heatmap_daily_snapshots CRUD
 class HabitDatabaseHandler {
   static Database? _db;
   static const String _dbName = 'habitcell.db';
@@ -51,7 +51,7 @@ class HabitDatabaseHandler {
     debugPrint('[HabitDB] db file: $path');
     return openDatabase(
       path,
-      version: 5,
+      version: 6,
       onCreate: (db, version) async {
         await db.execute('PRAGMA foreign_keys = ON');
         await db.execute('''
@@ -98,13 +98,6 @@ class HabitDatabaseHandler {
         await db.execute('CREATE UNIQUE INDEX IF NOT EXISTS uk_habit_date ON habit_daily_logs(habit_id, date)');
         await db.execute('CREATE INDEX IF NOT EXISTS idx_logs_updated ON habit_daily_logs(updated_at)');
         await db.execute('''
-          CREATE TABLE IF NOT EXISTS app_settings (
-            key TEXT PRIMARY KEY,
-            value TEXT NOT NULL,
-            updated_at TEXT NOT NULL
-          )
-        ''');
-        await db.execute('''
           CREATE TABLE IF NOT EXISTS heatmap_daily_snapshots (
             date TEXT PRIMARY KEY,
             achieved INTEGER NOT NULL DEFAULT 0,
@@ -120,6 +113,9 @@ class HabitDatabaseHandler {
         }
         if (oldVersion < 3) {
           await db.execute('ALTER TABLE habits ADD COLUMN deadline_reminder_time TEXT DEFAULT NULL');
+        }
+        if (oldVersion < 6) {
+          await db.execute('DROP TABLE IF EXISTS app_settings');
         }
         if (oldVersion < 5) {
           await db.execute('''
@@ -339,6 +335,49 @@ class HabitDatabaseHandler {
       return newRows.map((r) => Category.fromMap(r)).toList();
     }
     return list;
+  }
+
+  /// 튜토리얼용 기본 습관 (앱 최초 설치 시에만 1회, 복구와 무관)
+  /// - 물마시기 6회, 건강 카테고리, 마감 21:00
+  Future<void> ensureDefaultTutorialHabit(Locale? locale) async {
+    if (AppStorage.getTutorialHabitCreated()) return;
+
+    final habits = await getAllHabits();
+    if (habits.isNotEmpty) return;
+
+    final categories = await getAllCategories();
+    if (categories.isEmpty) return;
+    final healthCategory = categories.first; // 건강 (sort_order 0)
+
+    final title = _getDefaultTutorialHabitTitle(locale);
+    await createHabit(
+      title: title,
+      dailyTarget: 6,
+      sortOrder: 0,
+      categoryId: healthCategory.id,
+      deadlineReminderTime: '21:00',
+    );
+    await AppStorage.setTutorialHabitCreated();
+    debugPrint('[HabitDB] 튜토리얼용 기본 습관 생성: $title');
+  }
+
+  static const Map<String, String> _defaultTutorialHabitTitlesByLocale = {
+    'ko': '물마시기 (튜토리얼)',
+    'en': 'Drink water (Tutorial)',
+    'ja': '水を飲む（チュートリアル）',
+    'zh_CN': '喝水（教程）',
+    'zh_TW': '喝水（教學）',
+  };
+
+  static String _getDefaultTutorialHabitTitle(Locale? locale) {
+    if (locale != null) {
+      final key = locale.countryCode != null
+          ? '${locale.languageCode}_${locale.countryCode}'
+          : locale.languageCode;
+      final title = _defaultTutorialHabitTitlesByLocale[key];
+      if (title != null) return title;
+    }
+    return _defaultTutorialHabitTitlesByLocale['ko']!;
   }
 
   /// 카테고리 비어 있을 때 기본 카테고리 생성 (초기 locale 적용)
@@ -567,12 +606,26 @@ class HabitDatabaseHandler {
 
   /// 해당 날짜에 습관이 "활성"이었는지 (created_at <= date, 삭제 전)
   /// 전체 연속 달성 계산 시 해당 날짜에 존재했던 습관만 포함하기 위해 사용
+  ///
+  /// created_at/updated_at은 UTC ISO8601 형식이므로 로컬 날짜로 변환 후 비교
+  /// (한국 UTC+9에서 오후 3시 이후 생성 시 UTC 날짜가 하루 뒤가 되는 문제 방지)
   static bool wasActiveOnDate(Habit h, String date) {
-    final created = h.createdAt.length >= 10 ? h.createdAt.substring(0, 10) : h.createdAt;
+    final created = _utcToLocalDate(h.createdAt);
     if (created.compareTo(date) > 0) return false;
     if (!h.isDeleted) return true;
-    final updated = h.updatedAt.length >= 10 ? h.updatedAt.substring(0, 10) : h.updatedAt;
+    final updated = _utcToLocalDate(h.updatedAt);
     return updated.compareTo(date) > 0;
+  }
+
+  /// UTC ISO8601 타임스탬프 → 로컬 YYYY-MM-DD 변환
+  /// 파싱 실패 시 앞 10자(YYYY-MM-DD) 그대로 반환
+  static String _utcToLocalDate(String timestamp) {
+    try {
+      final dt = DateTime.parse(timestamp).toLocal();
+      return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
+    } catch (_) {
+      return timestamp.length >= 10 ? timestamp.substring(0, 10) : timestamp;
+    }
   }
 
   /// 날짜별 달성률 계산 후 스냅샷 저장
@@ -666,6 +719,77 @@ class HabitDatabaseHandler {
     await db.delete('habits');
   }
 
+  /// 백업 payload로 전체 복구 (트랜잭션)
+  /// payload: categories, habits, logs, heatmap_snapshots, settings
+  Future<void> restoreFromPayload(Map<String, dynamic> payload) async {
+    final db = await database;
+    final now = _nowUtc();
+
+    await db.transaction((txn) async {
+      await txn.delete('habit_daily_logs');
+      await txn.delete('habits');
+      await txn.delete('categories');
+      await txn.delete('heatmap_daily_snapshots');
+
+      final categories = payload['categories'] as List<dynamic>? ?? [];
+      for (final c in categories) {
+        final m = c as Map<String, dynamic>;
+        await txn.insert('categories', {
+          'id': m['id'],
+          'name': m['name'],
+          'color_value': m['color_value'] ?? 0xFF9E9E9E,
+          'sort_order': m['sort_order'] ?? 0,
+        });
+      }
+
+      final habits = payload['habits'] as List<dynamic>? ?? [];
+      for (final h in habits) {
+        final m = h as Map<String, dynamic>;
+        await txn.insert('habits', {
+          'id': m['id'],
+          'title': m['title'],
+          'daily_target': m['daily_target'] ?? 1,
+          'sort_order': m['sort_order'] ?? 0,
+          'category_id': m['category_id'],
+          'deadline_reminder_time': m['deadline_reminder_time'],
+          'is_active': m['is_active'] ?? 1,
+          'is_deleted': m['is_deleted'] ?? 0,
+          'is_dirty': m['is_dirty'] ?? 1,
+          'created_at': m['created_at'],
+          'updated_at': m['updated_at'],
+        });
+      }
+
+      final logs = payload['logs'] as List<dynamic>? ?? [];
+      for (final l in logs) {
+        final m = l as Map<String, dynamic>;
+        await txn.insert('habit_daily_logs', {
+          'id': m['id'],
+          'habit_id': m['habit_id'],
+          'date': m['date'],
+          'count': m['count'] ?? 0,
+          'is_completed': m['is_completed'] ?? 0,
+          'is_deleted': m['is_deleted'] ?? 0,
+          'is_dirty': m['is_dirty'] ?? 1,
+          'created_at': m['created_at'],
+          'updated_at': m['updated_at'],
+        });
+      }
+
+      final snapshots = payload['heatmap_snapshots'] as List<dynamic>? ?? [];
+      for (final s in snapshots) {
+        final m = s as Map<String, dynamic>;
+        await txn.insert('heatmap_daily_snapshots', {
+          'date': m['date'],
+          'achieved': m['achieved'] ?? 0,
+          'total': m['total'] ?? 0,
+          'level': m['level'] ?? 0,
+          'updated_at': now,
+        });
+      }
+    });
+  }
+
   /// 개발용: 현재 날짜 기준 1년 반(548일)치 더미 데이터 삽입
   /// [알고리즘] achievedPerDay: 사인파 + 노이즈로 0~nHabits 분포 생성
   /// [정책] toAchieve개 습관만 달성, 나머지는 target 미만으로 설정
@@ -757,22 +881,4 @@ class HabitDatabaseHandler {
     }
   }
 
-  // ========== app_settings ==========
-
-  Future<String?> getSetting(String key) async {
-    final db = await database;
-    final rows = await db.query('app_settings', where: 'key = ?', whereArgs: [key]);
-    if (rows.isEmpty) return null;
-    return rows.first['value'] as String?;
-  }
-
-  Future<void> setSetting(String key, String value) async {
-    final now = _nowUtc();
-    final db = await database;
-    await db.insert(
-      'app_settings',
-      {'key': key, 'value': value, 'updated_at': now},
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-  }
 }

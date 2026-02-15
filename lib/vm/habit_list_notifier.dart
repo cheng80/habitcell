@@ -7,6 +7,7 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitcell/model/habit.dart';
+import 'package:habitcell/service/backup_service.dart';
 import 'package:habitcell/vm/habit_database_handler.dart';
 
 /// HabitListNotifier - Riverpod AsyncNotifier 기반 ViewModel
@@ -38,42 +39,49 @@ class HabitListNotifier extends AsyncNotifier<List<HabitWithTodayCount>> {
       deadlineReminderTime: deadlineReminderTime,
     );
     ref.invalidateSelf();
+    BackupService().autoBackupIfNeeded(trigger: 'createHabit');
   }
 
   /// 습관 수정
   Future<void> updateHabit(Habit habit) async {
     await _dbHandler.updateHabit(habit);
     ref.invalidateSelf();
+    BackupService().autoBackupIfNeeded(trigger: 'updateHabit');
   }
 
   /// 습관 삭제 (소프트 삭제)
   Future<void> deleteHabit(String id) async {
     await _dbHandler.deleteHabit(id);
     ref.invalidateSelf();
+    BackupService().autoBackupIfNeeded(trigger: 'deleteHabit');
   }
 
   /// 오늘 count +1
   Future<void> incrementCount(String habitId) async {
     await _dbHandler.incrementCount(habitId);
     ref.invalidateSelf();
+    BackupService().autoBackupIfNeeded(trigger: 'incrementCount');
   }
 
   /// 오늘 count -1 (0 미만 방지)
   Future<void> decrementCount(String habitId) async {
     await _dbHandler.decrementCount(habitId);
     ref.invalidateSelf();
+    BackupService().autoBackupIfNeeded(trigger: 'decrementCount');
   }
 
   /// 오늘 완료 토글 (count >= target일 때만)
   Future<void> toggleCompleted(String habitId) async {
     await _dbHandler.toggleCompleted(habitId);
     ref.invalidateSelf();
+    BackupService().autoBackupIfNeeded(trigger: 'toggleCompleted');
   }
 
   /// 순서 변경
   Future<void> reorderHabits(List<String> habitIds) async {
     await _dbHandler.reorderHabits(habitIds);
     ref.invalidateSelf();
+    BackupService().autoBackupIfNeeded(trigger: 'reorderHabits');
   }
 
   /// 수동 새로고침

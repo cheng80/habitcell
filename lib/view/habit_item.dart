@@ -13,11 +13,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitcell/theme/app_colors.dart';
 import 'package:habitcell/theme/config_ui.dart';
 import 'package:habitcell/util/color_util.dart';
+import 'package:habitcell/util/tutorial_keys.dart';
 import 'package:habitcell/model/category.dart';
 import 'package:habitcell/model/habit.dart';
 import 'package:habitcell/vm/category_list_notifier.dart';
 import 'package:habitcell/vm/habit_database_handler.dart';
 import 'package:habitcell/vm/habit_list_notifier.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 
 class HabitItem extends ConsumerWidget {
@@ -28,6 +30,7 @@ class HabitItem extends ConsumerWidget {
   final double? rightMargin;
   final bool isHighlighted;
   final bool isExpanded;
+  final TutorialKeys? tutorialKeys;
 
   const HabitItem({
     super.key,
@@ -38,6 +41,7 @@ class HabitItem extends ConsumerWidget {
     this.rightMargin,
     this.isHighlighted = false,
     this.isExpanded = true,
+    this.tutorialKeys,
   });
 
   @override
@@ -52,8 +56,9 @@ class HabitItem extends ConsumerWidget {
     final target = habit.dailyTarget;
     final achieved = todayCount >= target;
     final isCompleted = item.isCompleted;
+    final keys = tutorialKeys;
 
-    return GestureDetector(
+    Widget cardContent = GestureDetector(
       onLongPress: () {
         HapticFeedback.mediumImpact();
         onLongPress();
@@ -114,7 +119,8 @@ class HabitItem extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       spacing: 8,
                       children: [
-                        _buildCountRow(
+                        _wrapCountRow(
+                          keys,
                           habit,
                           todayCount,
                           target,
@@ -123,17 +129,14 @@ class HabitItem extends ConsumerWidget {
                           p,
                           ref,
                         ),
-                        _CellGrid(
-                          count: todayCount,
-                          target: target,
-                          isCompleted: isCompleted,
-                          onFill: () => ref
-                              .read(habitListProvider.notifier)
-                              .incrementCount(habit.id),
-                          onUnfill: () => ref
-                              .read(habitListProvider.notifier)
-                              .decrementCount(habit.id),
-                          palette: p,
+                        _wrapCellGrid(
+                          keys,
+                          todayCount,
+                          target,
+                          isCompleted,
+                          habit.id,
+                          ref,
+                          p,
                         ),
                       ],
                     ),
@@ -145,6 +148,84 @@ class HabitItem extends ConsumerWidget {
         ),
       ),
     );
+
+    if (keys != null) {
+      cardContent = Showcase(
+        key: keys.habitCard,
+        description: 'tutorial_step_1'.tr(),
+        tooltipBackgroundColor: p.sheetBackground,
+        textColor: p.textOnSheet,
+        tooltipBorderRadius: ConfigUI.cardRadius,
+        disableDefaultTargetGestures: true,
+        child: cardContent,
+      );
+    }
+
+    return cardContent;
+  }
+
+  Widget _wrapCountRow(
+    TutorialKeys? keys,
+    Habit habit,
+    int todayCount,
+    int target,
+    bool achieved,
+    bool isCompleted,
+    AppColorScheme p,
+    WidgetRef ref,
+  ) {
+    final row = _buildCountRow(
+      habit,
+      todayCount,
+      target,
+      achieved,
+      isCompleted,
+      p,
+      ref,
+    );
+    if (keys != null) {
+      return Showcase(
+        key: keys.completeRow,
+        description: 'tutorial_step_3'.tr(),
+        tooltipBackgroundColor: p.sheetBackground,
+        textColor: p.textOnSheet,
+        tooltipBorderRadius: ConfigUI.cardRadius,
+        disableDefaultTargetGestures: true,
+        child: row,
+      );
+    }
+    return row;
+  }
+
+  Widget _wrapCellGrid(
+    TutorialKeys? keys,
+    int count,
+    int target,
+    bool isCompleted,
+    String habitId,
+    WidgetRef ref,
+    AppColorScheme p,
+  ) {
+    final grid = _CellGrid(
+      count: count,
+      target: target,
+      isCompleted: isCompleted,
+      onFill: () => ref.read(habitListProvider.notifier).incrementCount(habitId),
+      onUnfill: () => ref.read(habitListProvider.notifier).decrementCount(habitId),
+      palette: p,
+    );
+    if (keys != null) {
+      return Showcase(
+        key: keys.cellGrid,
+        description: 'tutorial_step_2'.tr(),
+        tooltipBackgroundColor: p.sheetBackground,
+        textColor: p.textOnSheet,
+        tooltipBorderRadius: ConfigUI.cardRadius,
+        disableDefaultTargetGestures: true,
+        child: grid,
+      );
+    }
+    return grid;
   }
 }
 

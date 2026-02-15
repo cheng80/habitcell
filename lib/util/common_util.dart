@@ -1,6 +1,38 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:habitcell/theme/app_colors.dart';
 import 'package:habitcell/theme/config_ui.dart';
+
+// ─── API Base URL ────────────────────────────────────────────────────────────
+
+/// FastAPI 서버 기본 URL (커스텀 오버라이드)
+/// Windows + Android 에뮬레이터 사용자는 자신의 호스트 IP를 설정하세요
+/// 예: 'http://192.168.1.50:8000'
+/// null이면 플랫폼에 따라 자동 선택 (Android: 10.0.2.2, iOS: 127.0.0.1)
+const String? customApiBaseUrl = null;
+// 윈도우 사용자는 윗줄 주석 처리 하고 아래 줄 주석 해제하여 자신의 호스트 IP를 설정하세요.
+// const String? customApiBaseUrl = 'http://192.168.90.7:8000';
+
+/// 플랫폼별 기본 API Base URL 반환
+/// - Android 에뮬레이터: 10.0.2.2 (호스트 머신 루프백)
+/// - iOS 시뮬레이터 / 기타: 127.0.0.1
+String _getApiBaseUrlSync() {
+  if (Platform.isAndroid) {
+    return 'http://10.0.2.2:8000';
+  }
+  return 'http://127.0.0.1:8000';
+}
+
+/// FastAPI 서버 기본 URL
+///
+/// customApiBaseUrl이 설정되어 있으면 사용하고, 없으면 플랫폼에 따라 기본값 반환
+String getApiBaseUrl() {
+  if (customApiBaseUrl != null && customApiBaseUrl!.isNotEmpty) {
+    return customApiBaseUrl!;
+  }
+  return _getApiBaseUrlSync();
+}
 
 /// 최상위 ScaffoldMessenger에 접근하기 위한 글로벌 키.
 /// MaterialApp의 messengerKey에 연결하면, 여러 컨텍스트에서 스낵바를
@@ -11,8 +43,7 @@ final GlobalKey<ScaffoldMessengerState> rootMessengerKey =
 
 /// 최상위 Overlay에 접근하기 위한 글로벌 키.
 /// showOverlaySnackBar: 바텀시트/드로어 위에 표시 (root overlay insert)
-final GlobalKey<NavigatorState> rootNavigatorKey =
-    GlobalKey<NavigatorState>();
+final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
 OverlayEntry? _overlaySnackEntry;
 
@@ -29,20 +60,19 @@ void showCommonSnackBar(
   SnackBarAction? action,
   bool clearBeforeShow = false,
 }) {
-  final effectiveTextColor = textColor ??
+  final effectiveTextColor =
+      textColor ??
       (backgroundColor.computeLuminance() > 0.5
           ? Colors.black87
           : Colors.white);
-  final messenger = rootMessengerKey.currentState ?? ScaffoldMessenger.of(context);
+  final messenger =
+      rootMessengerKey.currentState ?? ScaffoldMessenger.of(context);
   if (clearBeforeShow) {
     messenger.clearSnackBars();
   }
   messenger.showSnackBar(
     SnackBar(
-      content: Text(
-        message,
-        style: TextStyle(color: effectiveTextColor),
-      ),
+      content: Text(message, style: TextStyle(color: effectiveTextColor)),
       backgroundColor: backgroundColor,
       duration: duration,
       action: action,
@@ -63,7 +93,8 @@ void showOverlaySnackBar(
   ),
 }) {
   final overlay =
-      rootNavigatorKey.currentState?.overlay ?? Overlay.of(context, rootOverlay: true);
+      rootNavigatorKey.currentState?.overlay ??
+      Overlay.of(context, rootOverlay: true);
 
   _overlaySnackEntry?.remove();
   _overlaySnackEntry = null;
@@ -142,7 +173,9 @@ class _OverlaySnackBarState extends State<_OverlaySnackBar>
         color: Colors.transparent,
         child: Container(
           padding: const EdgeInsets.symmetric(
-              horizontal: ConfigUI.paddingCard, vertical: 12),
+            horizontal: ConfigUI.paddingCard,
+            vertical: 12,
+          ),
           decoration: BoxDecoration(
             color: widget.backgroundColor,
             borderRadius: ConfigUI.buttonRadius,
@@ -190,10 +223,7 @@ Future<bool> showConfirmDialog(
         ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(true),
-          child: Text(
-            confirmLabel,
-            style: TextStyle(color: confirmColor),
-          ),
+          child: Text(confirmLabel, style: TextStyle(color: confirmColor)),
         ),
       ],
     ),

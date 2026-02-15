@@ -2,6 +2,7 @@
 // GetStorage 기반 앱 설정 헬퍼
 
 import 'package:get_storage/get_storage.dart';
+import 'package:uuid/uuid.dart';
 
 /// AppStorage - 앱 설정을 저장/조회하는 정적 헬퍼
 ///
@@ -9,6 +10,66 @@ import 'package:get_storage/get_storage.dart';
 /// 추후 설정 항목이 늘어나면 여기에 키/메서드를 추가한다.
 class AppStorage {
   static GetStorage get _storage => GetStorage();
+  static const _uuid = Uuid();
+
+  // ─── 백업/복구 (device_uuid, last_backup_at 등) ─────────────────
+  static const String _keyDeviceUuid = 'device_uuid';
+  static const String _keyLastBackupAt = 'last_backup_at';
+  static const String _keyLastBackupAttemptAt = 'last_backup_attempt_at';
+  static const String _keyAutoBackupEnabled = 'auto_backup_enabled';
+  static const String _keyAutoBackupAnnounced = 'auto_backup_announced';
+  static const String _keyCooldownMinutes = 'cooldown_minutes';
+
+  /// device_uuid 조회 (없으면 null)
+  static String? getDeviceUuid() => _storage.read<String>(_keyDeviceUuid);
+
+  /// device_uuid 생성·저장 (최초 1회). 이미 있으면 그대로 반환
+  static Future<String> ensureDeviceUuid() async {
+    var uuid = getDeviceUuid();
+    if (uuid == null || uuid.isEmpty) {
+      uuid = _uuid.v4();
+      await _storage.write(_keyDeviceUuid, uuid);
+    }
+    return uuid;
+  }
+
+  /// 마지막 백업 시각 (ISO8601 문자열)
+  static String? getLastBackupAt() => _storage.read<String>(_keyLastBackupAt);
+
+  static Future<void> saveLastBackupAt(DateTime dateTime) =>
+      _storage.write(_keyLastBackupAt, dateTime.toIso8601String());
+
+  /// 마지막 백업 시도 시각 (쿨다운 체크용)
+  static String? getLastBackupAttemptAt() =>
+      _storage.read<String>(_keyLastBackupAttemptAt);
+
+  static Future<void> saveLastBackupAttemptAt(DateTime dateTime) =>
+      _storage.write(_keyLastBackupAttemptAt, dateTime.toIso8601String());
+
+  /// 마지막 백업 시도 초기화 (쿨다운 리셋, 테스트용)
+  static Future<void> clearLastBackupAttemptAt() =>
+      _storage.remove(_keyLastBackupAttemptAt);
+
+  /// 자동 백업 ON/OFF (기본값 false)
+  static bool getAutoBackupEnabled() =>
+      _storage.read<bool>(_keyAutoBackupEnabled) ?? false;
+
+  static Future<void> setAutoBackupEnabled(bool enabled) =>
+      _storage.write(_keyAutoBackupEnabled, enabled);
+
+  /// 자동 백업 고지 팝업 표시 여부 (1회만)
+  static bool getAutoBackupAnnounced() =>
+      _storage.read<bool>(_keyAutoBackupAnnounced) ?? false;
+
+  static Future<void> setAutoBackupAnnounced(bool v) =>
+      _storage.write(_keyAutoBackupAnnounced, v);
+
+  /// 백업 쿨다운(분). 기본 1분 (테스트용, 프로덕션은 10분 권장)
+  static int getCooldownMinutes() =>
+      _storage.read<int>(_keyCooldownMinutes) ?? 1;
+
+  static Future<void> setCooldownMinutes(int minutes) =>
+      _storage.write(_keyCooldownMinutes, minutes);
 
   // ─── 테마 ─────────────────────────────────────
   static const String _keyTheme = 'theme_mode';
@@ -94,6 +155,18 @@ class AppStorage {
 
   static Future<void> setPreReminderEnabled(bool enabled) =>
       _storage.write(_keyPreReminder, enabled);
+
+  // ─── 알림 권한 요청 기록 ─────────────────────────
+  static const String _keyNotificationPermissionRequested =
+      'notification_permission_requested';
+
+  /// 알림 권한을 이미 요청했는지 (최초 1회만 시스템 다이얼로그 표시)
+  static bool getNotificationPermissionRequested() =>
+      _storage.read<bool>(_keyNotificationPermissionRequested) ?? false;
+
+  /// 알림 권한 요청 완료 기록
+  static Future<void> setNotificationPermissionRequested() =>
+      _storage.write(_keyNotificationPermissionRequested, true);
 
   // ─── 히트맵 테마 ─────────────────────────────────
   static const String _keyHeatmapTheme = 'heatmap_theme';

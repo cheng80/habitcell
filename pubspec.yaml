@@ -76,6 +76,7 @@ dependencies:
 
   # 화면 깨우기
   wakelock_plus: ^1.4.0
+  package_info_plus: ^9.0.0
 
 dev_dependencies:
   flutter_test:

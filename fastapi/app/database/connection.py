@@ -1,6 +1,6 @@
 """
 데이터베이스 연결 설정
-Table Now 데이터베이스 연결을 위한 설정
+HabitCell 습관 앱 MySQL 연결을 위한 설정
 """
 
 import pymysql
@@ -8,12 +8,12 @@ import pymysql
 
 # TODO: 실제 데이터베이스 설정으로 변경 필요
 DB_CONFIG = {
-    'host': 'cheng80.myqnapcloud.com',
-    'user': 'team0101',
+    'host': '127.0.0.1',
+    'user': 'root',
     'password': 'qwer1234',
-    'database': 'table_now_db',  # 소셜 로그인 지원 데이터베이스
+    'database': 'habitcell_db',
     'charset': 'utf8mb4',
-    'port': 13306
+    'port': 3306
 }
 
 

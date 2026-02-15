@@ -14,6 +14,7 @@ import 'package:habitcell/theme/app_colors.dart';
 import 'package:habitcell/theme/config_ui.dart';
 import 'package:habitcell/util/sheet_util.dart';
 import 'package:habitcell/util/common_util.dart';
+import 'package:habitcell/util/tutorial_keys.dart';
 import 'package:habitcell/view/habit_item.dart';
 import 'package:habitcell/view/sheets/habit_delete_sheet.dart';
 import 'package:habitcell/view/sheets/habit_edit_sheet.dart';
@@ -22,7 +23,9 @@ import 'package:habitcell/vm/habit_list_notifier.dart';
 
 /// HabitHome - 습관 목록 (AppBar/Scaffold는 MainScaffold에서 제공)
 class HabitHome extends ConsumerStatefulWidget {
-  const HabitHome({super.key});
+  const HabitHome({super.key, this.tutorialKeys});
+
+  final TutorialKeys? tutorialKeys;
 
   @override
   ConsumerState<HabitHome> createState() => _HabitHomeState();
@@ -172,6 +175,7 @@ class _HabitHomeState extends ConsumerState<HabitHome> {
                           _buildDragProxyDecorator(p, child, animation),
                       itemBuilder: (context, index) {
                         final item = filteredItems[index];
+                        final isFirst = index == 0;
                         return Row(
                           key: ValueKey(item.habit.id),
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,6 +188,7 @@ class _HabitHomeState extends ConsumerState<HabitHome> {
                                 rightMargin: 8,
                                 isHighlighted: item.habit.id == _selectedForDeleteId,
                                 isExpanded: _allExpanded,
+                                tutorialKeys: isFirst ? widget.tutorialKeys : null,
                               ),
                             ),
                             ReorderableDragStartListener(
@@ -208,9 +213,10 @@ class _HabitHomeState extends ConsumerState<HabitHome> {
                     )
                   else
                     SliverList(
-                      delegate: SliverChildBuilderDelegate(
+                        delegate: SliverChildBuilderDelegate(
                         (context, index) {
                           final item = filteredItems[index];
+                          final isFirst = index == 0;
                           return Padding(
                             padding: const EdgeInsets.only(
                               left: ConfigUI.listItemMarginLeft,
@@ -225,6 +231,7 @@ class _HabitHomeState extends ConsumerState<HabitHome> {
                               rightMargin: 0,
                               isHighlighted: item.habit.id == _selectedForDeleteId,
                               isExpanded: _allExpanded,
+                              tutorialKeys: isFirst ? widget.tutorialKeys : null,
                             ),
                           );
                         },

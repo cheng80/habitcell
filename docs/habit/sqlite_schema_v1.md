@@ -62,13 +62,6 @@ CREATE TABLE IF NOT EXISTS habit_daily_logs (
 CREATE UNIQUE INDEX uk_habit_date ON habit_daily_logs(habit_id, date);
 CREATE INDEX idx_logs_updated ON habit_daily_logs(updated_at);
 
--- app_settings: key-value 설정 (스키마 버전, device_uuid 등)
-CREATE TABLE IF NOT EXISTS app_settings (
-  key TEXT PRIMARY KEY,
-  value TEXT NOT NULL,
-  updated_at TEXT NOT NULL
-);
-
 -- heatmap_daily_snapshots: 날짜별 달성률 스냅샷 (히트맵용)
 CREATE TABLE IF NOT EXISTS heatmap_daily_snapshots (
   date TEXT PRIMARY KEY,
@@ -124,18 +117,7 @@ CREATE TABLE IF NOT EXISTS heatmap_daily_snapshots (
 
 - **유니크**: (habit_id, date) — 하루 1행
 
-### 3.4 app_settings (key-value)
-
-| key | 용도 |
-|-----|------|
-| schema_version | 스키마 버전 (마이그레이션) |
-| app_locale | 앱 로케일 (카테고리 초기화용) |
-| device_uuid | 기기 식별자 (백업/복구 시 사용, 추후) |
-| last_backup_at | 마지막 백업 시각 (추후) |
-
-> **참고**: 테마, 잔디 색상, 미리 알림, 화면 꺼짐 등은 GetStorage에 저장됨.
-
-### 3.5 heatmap_daily_snapshots
+### 3.4 heatmap_daily_snapshots
 
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
@@ -157,19 +139,19 @@ CREATE TABLE IF NOT EXISTS heatmap_daily_snapshots (
 | < 3 | habits에 deadline_reminder_time 추가 |
 | < 4 | categories 테이블 생성, habits에 category_id 추가 |
 | < 5 | heatmap_daily_snapshots 테이블 생성 |
+| < 6 | app_settings 테이블 삭제 (기기 설정은 AppStorage 사용, 백업 제외) |
 
 ---
 
 ## 5. 구현 참조
 
-- Handler: `lib/vm/habit_database_handler.dart`
+- Handler: `lib/vm/habit_database_handler.dart` (canonical DDL 및 마이그레이션)
 - 모델: `lib/model/habit.dart`, `lib/model/habit_daily_log.dart`, `lib/model/category.dart`
-- 참고 DDL: `lib/db/habit_db_schema.dart` (간략 버전)
+- 스키마 상수: `lib/db/habit_db_schema.dart` (간략 버전, categories/heatmap 제외)
 
 ---
 
-## 6. 후순위 (현재 미구현)
+## 6. 기기 설정 (SQLite 외부)
 
-- MySQL 스키마 (백업 저장소)
-- FastAPI (백업/복구 API)
-- device_uuid, 백업 관련 app_settings — 로컬 전용 완성 후 추가
+- 테마, 잔디 색상, 미리 알림, 화면 꺼짐, device_uuid, 백업 관련 설정은 **AppStorage(GetStorage)**에 저장
+- 백업 payload에 포함하지 않음 (기기별 설정으로 복구 시점에 새 기기 기준 적용)

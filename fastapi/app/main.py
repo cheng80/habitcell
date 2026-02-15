@@ -28,11 +28,11 @@ app.add_middleware(
 )
 
 # ============================================
-# 라우터 등록 (습관앱 API는 추후 추가)
+# 라우터 등록
 # ============================================
-# from app.api import recovery, backups
-# app.include_router(recovery.router, prefix="/v1/recovery", tags=["recovery"])
-# app.include_router(backups.router, prefix="/v1/backups", tags=["backups"])
+from app.api import backups, recovery
+app.include_router(backups.router, prefix="/v1/backups", tags=["backups"])
+app.include_router(recovery.router, prefix="/v1/recovery", tags=["recovery"])
 
 @app.get("/")
 async def root():

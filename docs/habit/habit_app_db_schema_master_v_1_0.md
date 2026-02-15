@@ -80,13 +80,6 @@ CREATE TABLE IF NOT EXISTS habit_daily_logs (
 CREATE UNIQUE INDEX uk_habit_date ON habit_daily_logs(habit_id, date);
 CREATE INDEX idx_logs_updated ON habit_daily_logs(updated_at);
 
--- app_settings: key-value 설정
-CREATE TABLE IF NOT EXISTS app_settings (
-  key TEXT PRIMARY KEY,
-  value TEXT NOT NULL,
-  updated_at TEXT NOT NULL
-);
-
 -- heatmap_daily_snapshots: 날짜별 달성률 스냅샷 (히트맵용)
 CREATE TABLE IF NOT EXISTS heatmap_daily_snapshots (
   date TEXT PRIMARY KEY,
@@ -108,13 +101,14 @@ CREATE TABLE IF NOT EXISTS heatmap_daily_snapshots (
   "schema_version": 1,
   "device_uuid": "string",
   "exported_at": "ISO8601",
-  "settings": { ... },
   "categories": [ ... ],
   "habits": [ ... ],
   "logs": [ ... ],
   "heatmap_snapshots": [ ... ]
 }
 ```
+
+> **참고**: 기기 설정(테마, 자동 백업 등)은 AppStorage(GetStorage)에 저장되며 백업 대상에서 제외된다.
 
 ---
 
@@ -189,8 +183,8 @@ ON DUPLICATE KEY UPDATE
 
 1. 서버에서 payload 다운로드
 2. SQLite 트랜잭션 시작
-3. 기존 categories, habits, logs, heatmap_snapshots 삭제
-4. payload 데이터 재삽입
+3. 기존 habit_daily_logs, habits, categories, heatmap_daily_snapshots 삭제
+4. payload 데이터(categories, habits, logs, heatmap_snapshots) 재삽입
 5. 트랜잭션 커밋
 
 복구는 병합이 아닌 교체 방식이다.
@@ -199,7 +193,7 @@ ON DUPLICATE KEY UPDATE
 
 # 7. 데이터 흐름 요약
 
-로컬 기록 → SQLite 저장 → `is_dirty` = 1 자동/수동 백업 트리거 → JSON 스냅샷 생성(categories, habits, logs, heatmap_snapshots) → MySQL backups 업서트 복구 → MySQL 최신 payload 조회 → SQLite 교체
+로컬 기록 → SQLite 저장 → `is_dirty` = 1 자동/수동 백업 트리거 → JSON 스냅샷 생성(categories, habits, logs, heatmap_snapshots) → 서버 backups 업서트 → 서버 최신 payload 조회 → SQLite 교체
 
 ---
 

@@ -13,20 +13,28 @@ import 'package:habitcell/service/in_app_review_service.dart';
 import 'package:habitcell/theme/app_colors.dart';
 import 'package:habitcell/util/common_util.dart';
 import 'package:habitcell/theme/config_ui.dart';
-import 'package:habitcell/util/sheet_util.dart';
 import 'package:habitcell/vm/habit_list_notifier.dart';
 import 'package:habitcell/vm/heatmap_data_provider.dart';
 import 'package:habitcell/vm/habit_stats_provider.dart';
 import 'package:habitcell/vm/heatmap_theme_notifier.dart';
 import 'package:habitcell/vm/theme_notifier.dart';
 import 'package:habitcell/vm/wakelock_notifier.dart';
+import 'package:habitcell/util/app_storage.dart';
+import 'package:habitcell/view/backup_settings.dart';
 import 'package:habitcell/view/category_settings.dart';
+import 'package:habitcell/view/widgets/heatmap_theme_picker_sheet.dart';
+import 'package:habitcell/view/widgets/language_picker_sheet.dart';
 import 'package:habitcell/vm/pre_reminder_notifier.dart';
-import 'package:habitcell/service/notification_service.dart';
+import 'package:habitcell/service/notification_service.dart' show NotificationService;
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 /// AppDrawer - 설정 및 부가 기능
 class AppDrawer extends ConsumerStatefulWidget {
-  const AppDrawer({super.key});
+  const AppDrawer({super.key, this.onReplayTutorial, this.menuShowcaseKey});
+
+  final VoidCallback? onReplayTutorial;
+  final GlobalKey? menuShowcaseKey;
 
   @override
   ConsumerState<AppDrawer> createState() => _AppDrawerState();
@@ -226,6 +234,41 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
     }
   }
 
+  Widget _buildMenuHeader(AppColorScheme p) {
+    final content = Padding(
+      padding: const EdgeInsets.fromLTRB(
+        ConfigUI.screenPaddingH, 24, ConfigUI.screenPaddingH, 16,
+      ),
+      child: Row(
+        spacing: 12,
+        children: [
+          Icon(Icons.settings, color: p.icon, size: 28),
+          Text(
+            'settings'.tr(),
+            style: TextStyle(
+              color: p.textPrimary,
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+    final key = widget.menuShowcaseKey;
+    if (key != null) {
+      return Showcase(
+        key: key,
+        description: 'tutorial_step_5'.tr(),
+        tooltipBackgroundColor: p.sheetBackground,
+        textColor: p.textOnSheet,
+        tooltipBorderRadius: ConfigUI.cardRadius,
+        disableDefaultTargetGestures: true,
+        child: content,
+      );
+    }
+    return content;
+  }
+
   @override
   Widget build(BuildContext context) {
     final p = context.palette;
@@ -246,352 +289,252 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                 HapticFeedback.mediumImpact();
                 setState(() => _showDevButtons = !_showDevButtons);
               },
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  ConfigUI.screenPaddingH, 24, ConfigUI.screenPaddingH, 16,
-                ),
-                child: Row(
-                  spacing: 12,
-                  children: [
-                    Icon(Icons.settings, color: p.icon, size: 28),
-                    Text(
-                      'settings'.tr(),
-                      style: TextStyle(
-                        color: p.textPrimary,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              child: _buildMenuHeader(p),
             ),
             Divider(color: p.divider, height: 1),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: ConfigUI.screenPaddingH,
-                vertical: 4,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
                 children: [
-                  Text(
-                    'darkMode'.tr(),
-                    style: TextStyle(color: p.textPrimary, fontSize: 16),
-                  ),
-                  Switch(
-                    value: isDark,
-                    activeThumbColor: p.chipSelectedBg,
-                    activeTrackColor: p.chipUnselectedBg,
-                    inactiveThumbColor: p.textMeta,
-                    inactiveTrackColor: p.chipUnselectedBg,
-                    onChanged: (_) {
-                      HapticFeedback.mediumImpact();
-                      ref.read(themeNotifierProvider.notifier).toggleTheme();
-                    },
-                  ),
-                ],
-              ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: ConfigUI.screenPaddingH,
-                vertical: 4,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'screenWakeLock'.tr(),
-                    style: TextStyle(color: p.textPrimary, fontSize: 16),
-                  ),
-                  Switch(
-                    value: ref.watch(wakelockNotifierProvider),
-                    activeThumbColor: p.chipSelectedBg,
-                    activeTrackColor: p.chipUnselectedBg,
-                    inactiveThumbColor: p.textMeta,
-                    inactiveTrackColor: p.chipUnselectedBg,
-                    onChanged: (_) {
-                      HapticFeedback.mediumImpact();
-                      ref.read(wakelockNotifierProvider.notifier).toggle();
-                    },
-                  ),
-                ],
-              ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: ConfigUI.screenPaddingH,
-                vertical: 4,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'preReminder'.tr(),
-                        style: TextStyle(color: p.textPrimary, fontSize: 16),
-                      ),
-                      Switch(
-                        value: ref.watch(preReminderNotifierProvider),
-                        activeThumbColor: p.chipSelectedBg,
-                        activeTrackColor: p.chipUnselectedBg,
-                        inactiveThumbColor: p.textMeta,
-                        inactiveTrackColor: p.chipUnselectedBg,
-                        onChanged: (_) {
-                          HapticFeedback.mediumImpact();
-                          ref.read(preReminderNotifierProvider.notifier).toggle();
-                        },
-                      ),
-                    ],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: ConfigUI.screenPaddingH,
+                      vertical: 4,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'darkMode'.tr(),
+                          style: TextStyle(color: p.textPrimary, fontSize: 16),
+                        ),
+                        Switch(
+                          value: isDark,
+                          activeThumbColor: p.chipSelectedBg,
+                          activeTrackColor: p.chipUnselectedBg,
+                          inactiveThumbColor: p.textMeta,
+                          inactiveTrackColor: p.chipUnselectedBg,
+                          onChanged: (_) {
+                            HapticFeedback.mediumImpact();
+                            ref.read(themeNotifierProvider.notifier).toggleTheme();
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Text(
-                      'preReminderHint'.tr(),
-                      style: TextStyle(
-                        color: p.textMeta,
-                        fontSize: 12,
-                      ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: ConfigUI.screenPaddingH,
+                      vertical: 4,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'screenWakeLock'.tr(),
+                          style: TextStyle(color: p.textPrimary, fontSize: 16),
+                        ),
+                        Switch(
+                          value: ref.watch(wakelockNotifierProvider),
+                          activeThumbColor: p.chipSelectedBg,
+                          activeTrackColor: p.chipUnselectedBg,
+                          inactiveThumbColor: p.textMeta,
+                          inactiveTrackColor: p.chipUnselectedBg,
+                          onChanged: (_) {
+                            HapticFeedback.mediumImpact();
+                            ref.read(wakelockNotifierProvider.notifier).toggle();
+                          },
+                        ),
+                      ],
                     ),
                   ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: ConfigUI.screenPaddingH,
+                      vertical: 4,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'preReminder'.tr(),
+                              style: TextStyle(color: p.textPrimary, fontSize: 16),
+                            ),
+                            Switch(
+                              value: ref.watch(preReminderNotifierProvider),
+                              activeThumbColor: p.chipSelectedBg,
+                              activeTrackColor: p.chipUnselectedBg,
+                              inactiveThumbColor: p.textMeta,
+                              inactiveTrackColor: p.chipUnselectedBg,
+                              onChanged: (_) {
+                                HapticFeedback.mediumImpact();
+                                ref.read(preReminderNotifierProvider.notifier).toggle();
+                              },
+                            ),
+                          ],
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Text(
+                            'preReminderHint'.tr(),
+                            style: TextStyle(
+                              color: p.textMeta,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Divider(color: p.divider, height: 1),
+                        ListTile(
+                    leading: Icon(Icons.language, color: p.icon),
+                    title: Text(
+                      'language'.tr(),
+                      style: TextStyle(color: p.textPrimary, fontSize: 16),
+                    ),
+                    trailing: Icon(Icons.chevron_right, color: p.textSecondary),
+                    onTap: () {
+                      Navigator.pop(context);
+                      showLanguagePickerSheet(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.star_outline, color: p.icon),
+                    title: Text(
+                      'rateApp'.tr(),
+                      style: TextStyle(color: p.textPrimary, fontSize: 16),
+                    ),
+                    trailing: Icon(Icons.open_in_new, color: p.textSecondary, size: 20),
+                    onTap: () async {
+                      Navigator.pop(context);
+                      final ok = await InAppReviewService().openStoreListing();
+                      if (context.mounted && !ok) {
+                        showCommonSnackBar(
+                          context,
+                          message: '평점 기능은 앱 출시 후 이용 가능합니다.',
+                        );
+                      }
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.category_outlined, color: p.icon),
+                    title: Text(
+                      'categoryManage'.tr(),
+                      style: TextStyle(color: p.textPrimary, fontSize: 16),
+                    ),
+                    trailing: Icon(Icons.chevron_right, color: p.textSecondary),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const CategorySettings()),
+                      );
+                    },
+                  ),
+                  if (widget.onReplayTutorial != null)
+                    ListTile(
+                      leading: Icon(Icons.school_outlined, color: p.icon),
+                      title: Text(
+                        'tutorial_replay'.tr(),
+                        style: TextStyle(color: p.textPrimary, fontSize: 16),
+                      ),
+                      trailing: Icon(Icons.chevron_right, color: p.textSecondary),
+                      onTap: () {
+                        Navigator.pop(context);
+                        AppStorage.resetTutorialCompleted();
+                        widget.onReplayTutorial!();
+                      },
+                    ),
+                  ListTile(
+                    leading: Icon(Icons.grid_on_outlined, color: p.icon),
+                    title: Text(
+                      'heatmapTheme'.tr(),
+                      style: TextStyle(color: p.textPrimary, fontSize: 16),
+                    ),
+                    trailing: Icon(Icons.chevron_right, color: p.textSecondary),
+                    onTap: () {
+                      final notifier = ref.read(heatmapThemeNotifierProvider.notifier);
+                      final current = ref.read(heatmapThemeNotifierProvider);
+                      Navigator.pop(context);
+                      showHeatmapThemePickerSheet(context, notifier, current);
+                    },
+                  ),
+                  Divider(color: p.divider, height: 1),
+                  ListTile(
+                    leading: Icon(Icons.cloud_outlined, color: p.icon),
+                    title: Text(
+                      'backupAndRestore'.tr(),
+                      style: TextStyle(color: p.textPrimary, fontSize: 16),
+                    ),
+                    trailing: Icon(Icons.chevron_right, color: p.textSecondary),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const BackupSettings()),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.alarm_outlined, color: p.icon),
+                    title: Text(
+                      'alarmStatusCheck'.tr(),
+                      style: TextStyle(color: p.textPrimary, fontSize: 16),
+                    ),
+                    trailing: Icon(Icons.info_outline, color: p.textSecondary, size: 20),
+                    onTap: () => _onAlarmStatusCheck(context, ref),
+                  ),
+                  if (_showDevButtons) ...[
+                    Divider(color: p.divider, height: 1),
+                    ListTile(
+                      leading: Icon(Icons.data_object, color: p.icon),
+                      title: Text(
+                        'dummyDataInsert'.tr(),
+                        style: TextStyle(color: p.textPrimary, fontSize: 16),
+                      ),
+                      onTap: () => _onInsertDummyData(context, ref),
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.delete_sweep, color: p.icon),
+                      title: Text(
+                        'deleteAllData'.tr(),
+                        style: TextStyle(color: p.textPrimary, fontSize: 16),
+                      ),
+                      onTap: () => _onDeleteAllData(context, ref),
+                    ),
+                  ],
                 ],
               ),
             ),
-
-            Divider(color: p.divider, height: 1),
-
-            ListTile(
-              leading: Icon(Icons.language, color: p.icon),
-              title: Text(
-                'language'.tr(),
-                style: TextStyle(color: p.textPrimary, fontSize: 16),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                ConfigUI.screenPaddingH, 12, ConfigUI.screenPaddingH, 16,
               ),
-              trailing: Icon(Icons.chevron_right, color: p.textSecondary),
-              onTap: () {
-                Navigator.pop(context);
-                _showLanguagePicker(context);
-              },
-            ),
-
-            ListTile(
-              leading: Icon(Icons.star_outline, color: p.icon),
-              title: Text(
-                'rateApp'.tr(),
-                style: TextStyle(color: p.textPrimary, fontSize: 16),
-              ),
-              trailing: Icon(Icons.open_in_new, color: p.textSecondary, size: 20),
-              onTap: () async {
-                Navigator.pop(context);
-                final ok = await InAppReviewService().openStoreListing();
-                if (context.mounted && !ok) {
-                  showCommonSnackBar(
-                    context,
-                    message: '평점 기능은 앱 출시 후 이용 가능합니다.',
+              child: FutureBuilder<PackageInfo>(
+                future: PackageInfo.fromPlatform(),
+                builder: (context, snapshot) {
+                  final v = snapshot.data;
+                  final text = v != null
+                      ? '${'appVersion'.tr()} ${v.version}+${v.buildNumber}'
+                      : 'appVersion'.tr();
+                  return Text(
+                    text,
+                    style: TextStyle(
+                      color: p.textMeta,
+                      fontSize: 12,
+                    ),
                   );
-                }
-              },
+                },
+              ),
             ),
-
-            ListTile(
-              leading: Icon(Icons.category_outlined, color: p.icon),
-              title: Text(
-                'categoryManage'.tr(),
-                style: TextStyle(color: p.textPrimary, fontSize: 16),
-              ),
-              trailing: Icon(Icons.chevron_right, color: p.textSecondary),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const CategorySettings()),
-                );
-              },
-            ),
-
-            ListTile(
-              leading: Icon(Icons.grid_on_outlined, color: p.icon),
-              title: Text(
-                'heatmapTheme'.tr(),
-                style: TextStyle(color: p.textPrimary, fontSize: 16),
-              ),
-              trailing: Icon(Icons.chevron_right, color: p.textSecondary),
-              onTap: () {
-                final notifier = ref.read(heatmapThemeNotifierProvider.notifier);
-                final current = ref.read(heatmapThemeNotifierProvider);
-                Navigator.pop(context);
-                _showHeatmapThemePicker(context, notifier, current);
-              },
-            ),
-
-            ListTile(
-              leading: Icon(Icons.alarm_outlined, color: p.icon),
-              title: Text(
-                'alarmStatusCheck'.tr(),
-                style: TextStyle(color: p.textPrimary, fontSize: 16),
-              ),
-              trailing: Icon(Icons.info_outline, color: p.textSecondary, size: 20),
-              onTap: () => _onAlarmStatusCheck(context, ref),
-            ),
-
-            if (_showDevButtons) ...[
-              Divider(color: p.divider, height: 1),
-              ListTile(
-                leading: Icon(Icons.data_object, color: p.icon),
-                title: Text(
-                  'dummyDataInsert'.tr(),
-                  style: TextStyle(color: p.textPrimary, fontSize: 16),
-                ),
-                onTap: () => _onInsertDummyData(context, ref),
-              ),
-              ListTile(
-                leading: Icon(Icons.delete_sweep, color: p.icon),
-                title: Text(
-                  'deleteAllData'.tr(),
-                  style: TextStyle(color: p.textPrimary, fontSize: 16),
-                ),
-                onTap: () => _onDeleteAllData(context, ref),
-              ),
-            ],
           ],
         ),
       ),
     );
   }
-}
-
-void _showHeatmapThemePicker(
-  BuildContext context,
-  HeatmapThemeNotifier notifier,
-  HeatmapTheme current,
-) {
-  final p = context.palette;
-  showModalBottomSheet(
-    context: context,
-    backgroundColor: p.sheetBackground,
-    shape: defaultSheetShape,
-    builder: (ctx) => SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(ConfigUI.paddingCard),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'heatmapTheme'.tr(),
-              style: TextStyle(
-                color: p.textPrimary,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: HeatmapTheme.values.map((theme) {
-                final isSelected = current == theme;
-                final colors = getHeatmapColors(theme, p.divider);
-                return GestureDetector(
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    notifier.setTheme(theme);
-                    Navigator.pop(ctx);
-                  },
-                  child: Container(
-                    width: 72,
-                    padding: const EdgeInsets.all(ConfigUI.chipPaddingHCompact),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? p.primary.withValues(alpha: 0.2)
-                          : p.cardBackground,
-                      borderRadius: ConfigUI.cardRadius,
-                      border: Border.all(
-                        color: isSelected ? p.primary : p.divider,
-                        width: isSelected ? 2 : 1,
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(4, (i) => Padding(
-                            padding: const EdgeInsets.all(1),
-                            child: Container(
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                color: colors.levels[i.clamp(0, colors.levels.length - 1)],
-                                borderRadius: ConfigUI.heatmapCellRadius,
-                              ),
-                            ),
-                          )),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'heatmapTheme_${theme.key}'.tr(),
-                          style: TextStyle(
-                            color: p.textPrimary,
-                            fontSize: 12,
-                          ),
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
-void _showLanguagePicker(BuildContext context) {
-  final p = context.palette;
-  showModalBottomSheet(
-    context: context,
-    backgroundColor: p.sheetBackground,
-    shape: defaultSheetShape,
-    builder: (ctx) => SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _langTile(ctx, const Locale('ko'), 'langKo'.tr()),
-          _langTile(ctx, const Locale('en'), 'langEn'.tr()),
-          _langTile(ctx, const Locale('ja'), 'langJa'.tr()),
-          _langTile(ctx, const Locale('zh', 'CN'), 'langZhCN'.tr()),
-          _langTile(ctx, const Locale('zh', 'TW'), 'langZhTW'.tr()),
-        ],
-      ),
-    ),
-  );
-}
-
-Widget _langTile(BuildContext context, Locale locale, String label) {
-  final p = context.palette;
-  final isSelected = context.locale == locale;
-  return ListTile(
-    leading: Icon(
-      isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
-      color: isSelected ? p.accent : p.icon,
-    ),
-    title: Text(label, style: TextStyle(color: p.textOnSheet)),
-    onTap: () {
-      context.setLocale(locale);
-      Navigator.pop(context);
-    },
-  );
 }
 

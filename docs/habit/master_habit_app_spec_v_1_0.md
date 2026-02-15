@@ -286,15 +286,19 @@
 - categories — 습관 카테고리
 - habits — 습관 (category_id, deadline_reminder_time 포함)
 - habit_daily_logs — 일별 기록 (is_completed 포함)
-- heatmap_daily_snapshots — 날짜별 달성률 스냅샷
-- app_settings — key-value (schema_version, app_locale, device_uuid 등)
+- heatmap_daily_snapshots — 날짜별 달성률 스냅샷 (히트맵 년/전체용)
 
-### 12.2 경량 저장소(GetStorage)
+> **참고**: 기기 설정은 SQLite에 저장하지 않음. app_settings 테이블은 제거됨.
+
+### 12.2 경량 저장소(GetStorage / AppStorage)
 - theme_mode — 테마 (light/dark/system)
 - heatmap_theme — 잔디 색상 테마
 - pre_reminder_enabled — 미리 알림(점심·저녁) ON/OFF
 - wakelock_enabled — 화면 꺼짐 방지
-- device_uuid, last_backup_at, auto_backup_enabled, cooldown_minutes (추후)
+- device_uuid — 기기 식별자 (백업/복구)
+- last_backup_at — 마지막 백업 시각
+- auto_backup_enabled — 자동 백업 ON/OFF
+- cooldown_minutes — 백업 쿨다운(분)
 
 ---
 
@@ -325,14 +329,14 @@
 
 ## 16. 구현 체크리스트 (개발자가 바로 실행할 수 있는 수준)
 
-- [ ] device_uuid 생성/보관(GetStorage)
-- [ ] SQLite 스키마 생성(습관/로그/설정)
-- [ ] 히트맵 계산(월/연)
-- [ ] 자동 백업 트리거(기록 완료, pause) + cooldown
-- [ ] 스냅샷 payload 생성(습관+로그+설정)
-- [ ] FastAPI: 이메일 코드 발송/검증
-- [ ] FastAPI: 백업 업서트/다운로드
-- [ ] 복구: 다운로드 → 로컬 DB 교체
-- [ ] 복구 UX: (현재 상태 백업 후 복구 / 바로 복구 / 취소)
-- [ ] 개인정보/고지: 백업 진입 시 이메일 목적 고지 + 자동 백업 고지
+- [x] device_uuid 생성/보관(GetStorage)
+- [x] SQLite 스키마 생성(습관/로그/카테고리/히트맵)
+- [x] 히트맵 계산(주/월/년/전체)
+- [x] 자동 백업 트리거(백그라운드 전환) + cooldown
+- [x] 스냅샷 payload 생성(categories, habits, logs, heatmap_snapshots)
+- [x] FastAPI: 이메일 코드 발송/검증
+- [x] FastAPI: 백업 업서트/다운로드
+- [x] 복구: 다운로드 → 로컬 DB 교체
+- [x] 복구 UX: (현재 상태 백업 후 복구 / 바로 복구 / 취소)
+- [x] 개인정보/고지: 백업 진입 시 이메일 목적 고지 + 자동 백업 고지
 

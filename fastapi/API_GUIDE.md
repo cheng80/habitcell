@@ -57,10 +57,12 @@ pip install -r requirements.txt
 ### 3. 서버 실행
 
 ```bash
-# 개발 모드
+# fastapi 디렉터리에서 실행 (필수)
+cd fastapi
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 # 또는 main.py 직접 실행
+cd fastapi
 python app/main.py
 ```
 

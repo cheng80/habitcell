@@ -13,6 +13,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:app_badge_plus/app_badge_plus.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:habitcell/util/app_storage.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -62,11 +63,12 @@ class NotificationService {
           AndroidInitializationSettings('@mipmap/ic_launcher');
 
       // iOS: 포그라운드에서도 알림 표시
+      // 권한 요청은 requestPermission()에서 1회만 수행 (초기화 시 중복 요청 방지)
       const DarwinInitializationSettings iosSettings =
           DarwinInitializationSettings(
-            requestAlertPermission: true,
-            requestBadgePermission: true,
-            requestSoundPermission: true,
+            requestAlertPermission: false,
+            requestBadgePermission: false,
+            requestSoundPermission: false,
             defaultPresentAlert: true,
             defaultPresentSound: true,
             defaultPresentBadge: true,
@@ -86,7 +88,8 @@ class NotificationService {
 
       if (initialized == true) {
         await _createNotificationChannel();
-        await _requestAndroidNotificationPermission();
+        // Android 권한은 requestPermission()에서만 요청 (main에서 1회 호출)
+        // initialize()에서 중복 요청 시 권한 다이얼로그가 2번 뜸
         _isInitialized = true;
         return true;
       }
@@ -114,21 +117,6 @@ class NotificationService {
         ?.createNotificationChannel(channel);
   }
 
-  /// Android 13+ 알림 권한 요청
-  Future<void> _requestAndroidNotificationPermission() async {
-    try {
-      final androidImplementation = _notifications
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
-
-      if (androidImplementation != null) {
-        await androidImplementation.requestNotificationsPermission();
-      }
-    } catch (e) {
-      debugPrint('[Notification] Android 권한 요청 실패: $e');
-    }
-  }
-
   /// 알람 권한 확인
   Future<bool> checkPermission() async {
     final status = await Permission.notification.status;
@@ -136,22 +124,28 @@ class NotificationService {
   }
 
   /// 알람 권한 요청
+  ///
+  /// - 이미 허용(isGranted)이면 즉시 true 반환
+  /// - Android: 최초 1회만 시스템 다이얼로그 표시 (AppStorage에 기록)
+  ///   이후 실행에서는 다시 묻지 않음
+  /// - context가 있고 영구 거부 상태면 설정 이동 안내 다이얼로그 표시
   Future<bool> requestPermission({BuildContext? context}) async {
     if (!_isInitialized) await initialize();
 
+    // 1) 이미 허용된 경우 → 바로 반환
+    final status = await Permission.notification.status;
+    if (status.isGranted) return true;
+
+    // --- iOS ---
     final iosImplementation = _notifications
         .resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin>();
 
     if (iosImplementation != null) {
-      final status = await Permission.notification.status;
-      if (status.isGranted) return true;
       if (status.isPermanentlyDenied) {
         if (context != null && context.mounted) {
           final shouldOpen = await _showPermissionDeniedDialog(context);
           if (shouldOpen) await openAppSettings();
-        } else {
-          await openAppSettings();
         }
         return false;
       }
@@ -163,15 +157,17 @@ class NotificationService {
       return result ?? false;
     }
 
-    final status = await Permission.notification.status;
-    if (status.isGranted) return true;
+    // --- Android ---
     if (status.isPermanentlyDenied) {
       if (context != null && context.mounted) {
         final shouldOpen = await _showPermissionDeniedDialog(context);
         if (shouldOpen) await openAppSettings();
-      } else {
-        await openAppSettings();
       }
+      return false;
+    }
+
+    // 이미 한 번 요청했으면 다시 시스템 다이얼로그를 띄우지 않음
+    if (AppStorage.getNotificationPermissionRequested()) {
       return false;
     }
 
@@ -180,6 +176,7 @@ class NotificationService {
           .resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>();
       if (androidImplementation != null) {
+        await AppStorage.setNotificationPermissionRequested();
         final bool? granted =
             await androidImplementation.requestNotificationsPermission();
         return granted ?? false;

@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:habitcell/service/backup_service.dart';
 import 'package:habitcell/service/notification_service.dart'
     show DeadlineReminderItem, NotificationService;
 import 'package:habitcell/util/common_util.dart';
@@ -19,6 +20,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:habitcell/vm/theme_notifier.dart';
 import 'package:habitcell/vm/habit_database_handler.dart';
+import 'package:habitcell/vm/habit_list_notifier.dart';
 
 Future<void> _initDateFormats() async {
   await Future.wait([
@@ -43,6 +45,7 @@ void main() async {
   if (AppStorage.getFirstLaunchDate() == null) {
     await AppStorage.saveFirstLaunchDate(DateTime.now());
   }
+  await AppStorage.ensureDeviceUuid();
 
   if (AppStorage.getWakelockEnabled()) {
     WakelockPlus.enable();
@@ -109,6 +112,8 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
 
   Future<void> _performInitialCleanup() async {
     try {
+      await HabitDatabaseHandler().ensureDefaultTutorialHabit(context.locale);
+      ref.invalidate(habitListProvider);
       await HabitDatabaseHandler().ensureYesterdaySnapshot();
       await _notificationService.clearBadge();
       await _notificationService.cancelPreReminders(); // 앱 진입 시 취소 (백그라운드에서만 예약)
@@ -153,6 +158,7 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
       if (AppStorage.getPreReminderEnabled()) {
         await _notificationService.schedulePreReminders();
       }
+      await BackupService().autoBackupIfNeeded(fromBackground: true, trigger: 'app_background');
     } catch (_) {}
   }
 

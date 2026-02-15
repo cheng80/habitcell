@@ -97,6 +97,28 @@ assets/
 
 ---
 
+## 버전 관리
+
+앱 버전은 `pubspec.yaml`의 `version`에서 관리한다. (상세: `docs/DRAWER_AND_VERSION_GUIDE.md`) **Flutter는 자동으로 버전을 올려주지 않으므로**, 마켓 빌드 시마다 수동으로 올려야 한다.
+
+```yaml
+version: 1.0.0+1   # 1.0.0 = 버전명(사용자 노출), +1 = 빌드 번호(스토어 구분)
+```
+
+| 구분 | 설명 |
+|------|------|
+| 버전명 | 사용자에게 표시 (Drawer 푸터, 스토어). 예: 1.0.0 → 1.0.1 |
+| 빌드 번호 | 스토어 업로드 시 이전보다 커야 함. 예: +1 → +2 |
+
+**빌드 시 오버라이드** (pubspec 수정 없이):
+
+```bash
+flutter build apk --build-name=1.0.1 --build-number=2
+flutter build ios --build-name=1.0.1 --build-number=2
+```
+
+---
+
 ## 실행
 
 ```bash

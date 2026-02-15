@@ -77,6 +77,14 @@
 
 ## 공통 (앱 코드)
 
+- [ ] **버전 업데이트** (마켓 빌드 전 필수)
+  - `pubspec.yaml`의 `version` 수동 수정
+  - 형식: `1.0.0+1` (버전명+빌드번호)
+  - 버전명: 사용자 노출 (Drawer 푸터, 스토어)
+  - 빌드 번호: 스토어 업로드 시 이전보다 커야 함
+  - Flutter는 자동 증가 없음 → 매 빌드마다 수동 올림
+  - 대안: `flutter build apk --build-name=1.0.1 --build-number=2` 로 오버라이드
+
 - [x] **스토어 평점/리뷰 팝업** (구현 완료)
   - 패키지: `in_app_review: ^2.0.11`
   - `InAppReviewService`: `requestReview()` 자동 호출 (5개 완료 또는 3일 경과)
@@ -96,4 +104,6 @@
 
 ## 참고 문서
 
+- `docs/DRAWER_AND_VERSION_GUIDE.md` — Drawer 구조, package_info_plus, 버전 업데이트 (다른 앱 적용 가이드)
+- `README.md` — 버전 관리 요약
 - `docs/IN_APP_REVIEW_GUIDE.md` — 인앱 리뷰 테스트·가이드라인

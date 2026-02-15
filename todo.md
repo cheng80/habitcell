@@ -18,6 +18,14 @@
 - **ERD**: sqlite/mysql 분리 (erd_sqlite.mmd, erd_mysql.mmd)
 - **docs 갱신**: sqlite_schema_v1, habit_app_db_schema_master, master_habit_app_spec, GOOGLE_STITCH_PROMPTS
 - **iOS 스플래시 캐시**: scripts/ios_splash_clean.sh (캐시 버스팅)
+- **백업/복구 기본**: 3.1~3.5, 3.7 완료 (device_uuid, 수동/자동 백업, 복구, FastAPI backups API)
+- **3.6 이메일 등록**: recovery API, 6자리 인증, 이메일 변경/재등록
+- **4.3 recovery API**: app/api/recovery.py, GET status, POST email/request, POST email/verify
+- **백업 & 복구**: Drawer/AppBar 메뉴명 통합
+- **복구 UX**: 동일 기기 이메일 불필요 안내, 복구 전 백업 실패 시 처리, 디버깅 메시지
+- **다른 기기 복구**: GET /v1/recovery/backup (이메일로 백업 조회), 이메일 미인증 시 안내
+- **스토리지 갱신 UI**: 백업 간격(1/5/10분), 마지막 백업 시도 초기화 (테스트용)
+- **백업 트리거 디버그**: 모든 트리거 시 ★ 백업 트리거: {원인} 출력
 
 ---
 
@@ -39,7 +47,8 @@
 | 4 | 2 | Flutter 핵심 (습관 CRUD, +1/-1) | ✅ 완료 |
 | 5 | 5 | UI (홈, 분석, 설정) | ✅ 기본 골격 완료 |
 | 6 | 2.3 | 히트맵 + 잔디 테마 | ✅ 기본 완료 |
-| 7 | 2.5, 3, 4 | 알림, 백업/복구, FastAPI | 🔄 다음 |
+| 7 | 2.5, 3, 4 | 알림, 백업/복구, FastAPI | ✅ 기본 완료 |
+| 8 | 3.6, 4.3 | 이메일 등록(복구), recovery API | ✅ 완료 |
 
 ---
 
@@ -132,7 +141,7 @@
 ### 2.5 로컬 알림
 - [x] Pre-reminder: 점심·저녁에 오늘 습관 리마인드 (Drawer 토글)
 - [x] 마감 알림: 습관별 사용자 지정 시간 (deadline_reminder_time, HH:mm)
-- [ ] 달성 시 자동 취소: 당일 목표 달성 시 해당 습관 마감 알림 취소
+- [x] 달성 시 자동 취소: 당일 목표 달성 시 해당 습관 마감 알림 취소
 - [x] flutter_local_notifications 연동 (NotificationService)
 
 ---
@@ -140,80 +149,77 @@
 ## 3. Flutter - 백업/복구
 
 ### 3.1 device_uuid
-- [ ] device_uuid 생성 (uuid 패키지 또는 UUID v4)
-- [ ] GetStorage에 device_uuid 저장
-- [ ] 앱 최초 실행 시 1회 생성
+- [x] device_uuid 생성 (uuid 패키지 또는 UUID v4)
+- [x] GetStorage에 device_uuid 저장
+- [x] 앱 최초 실행 시 1회 생성
 
 ### 3.2 GetStorage 키 (경량 저장소)
-- [ ] device_uuid
-- [ ] last_backup_at
-- [ ] last_backup_attempt_at
-- [ ] auto_backup_enabled
-- [ ] cooldown_minutes
+- [x] device_uuid
+- [x] last_backup_at
+- [x] last_backup_attempt_at
+- [x] auto_backup_enabled
+- [x] cooldown_minutes
 
 ### 3.3 수동 백업
-- [ ] 설정 > 백업: "지금 백업하기" 버튼
-- [ ] 스냅샷 payload 생성 (schema_version, device_uuid, exported_at, settings, habits, logs)
-- [ ] POST /v1/backups API 호출
-- [ ] 성공 시 "마지막 백업: YYYY-MM-DD HH:mm" 표시
+- [x] 설정 > 백업: "지금 백업하기" 버튼
+- [x] 스냅샷 payload 생성 (schema_version, device_uuid, exported_at, settings, categories, habits, logs, heatmap_snapshots)
+- [x] POST /v1/backups API 호출
+- [x] 성공 시 "마지막 백업: YYYY-MM-DD HH:mm" 표시
 
 ### 3.4 자동 백업
-- [ ] 설정 토글: auto_backup_enabled
-- [ ] 트리거 1: 기록 완료(+1/-1 확정) 시 is_dirty==true일 때
-- [ ] 트리거 2: 앱 백그라운드 전환(pause) 시
-- [ ] cooldown(기본 10분) 이내 중복 실행 금지
-- [ ] 네트워크 불가 시 스킵, is_dirty 유지
+- [x] 설정 토글: auto_backup_enabled (Drawer)
+- [x] 트리거 1: +1/-1, 완료 토글, 습관 CRUD, 순서 변경 시 (백업 간격 적용, 기본 1분)
+- [x] 트리거 2: 앱 백그라운드 전환(pause) 시 (간격 무시, 매번 백업)
+- [x] 네트워크 불가 시 스킵
 
 ### 3.5 자동 백업 고지
-- [ ] 자동 백업 ON 시 1회 팝업: "마지막 백업 이후 변경은 복구 시 포함되지 않을 수 있습니다"
-- [ ] 설정 화면 상시: "마지막 백업: YYYY-MM-DD HH:mm"
+- [x] 자동 백업 ON 시 1회 팝업 (통합 안내 문구)
+- [x] 인포 버튼으로 재확인 가능
+- [x] "마지막 백업" 표시 (지금 백업하기 subtitle)
 
-### 3.6 이메일 등록 (6자리 인증)
-- [ ] 백업 기능 최초 사용 시 이메일 입력 요구
-- [ ] 이메일 입력 → POST /v1/recovery/email/request
-- [ ] 6자리 코드 입력 UI
-- [ ] POST /v1/recovery/email/verify
-- [ ] 인증 성공 시 device↔email 연결
-- [ ] 개인정보/고지: 백업 진입 시 이메일 수집 목적/범위 고지
+### 3.6 이메일 등록 (6자리 인증) — ✅ 완료
+- [x] 백업 화면 진입 시 이메일 인증 여부 확인 (GET /v1/recovery/status)
+- [x] 이메일 입력 → POST /v1/recovery/email/request
+- [x] 6자리 코드 입력 UI → POST /v1/recovery/email/verify
+- [x] 인증 성공 시 device↔email 연결 (devices.email, email_verified_at)
+- [x] 개인정보/고지: 이메일 등록 카드 내 info 버튼으로 수집 목적/범위 안내
 
 ### 3.7 복구
-- [ ] GET /v1/backups/latest?device_uuid=... 호출
-- [ ] payload 다운로드
-- [ ] 복구 직전 경고 + 선택지:
-  - [ ] 1) 현재 상태 백업 후 복구
-  - [ ] 2) 바로 복구
-  - [ ] 3) 취소
-- [ ] SQLite 트랜잭션: 기존 habits/logs 삭제 → payload 재삽입 → 커밋
+- [x] GET /v1/backups/latest?device_uuid=... 호출 (동일 기기 이메일 불필요)
+- [x] 다른 기기: 404 시 GET /v1/recovery/backup?device_uuid=... (이메일 인증 필요)
+- [x] payload 다운로드
+- [x] 복구 직전 경고 + 선택지: 1) 현재 상태 백업 후 복구 2) 바로 복구 3) 취소
+- [x] 백업 실패 시: "그래도 복구?" 확인 다이얼로그
+- [x] SQLite 트랜잭션: categories/habits/logs/heatmap/settings 삭제 → payload 재삽입
+- [x] 복구 후 provider 무효화, 마감 알림 재등록
 
 ---
 
 ## 4. FastAPI 백엔드
 
 ### 4.1 MySQL 스키마
-- [ ] habit_app_db 생성 (utf8mb4)
-- [ ] devices 테이블
-- [ ] email_verifications 테이블
-- [ ] backups 테이블
-- [ ] mysql/habit_app_db_init.sql 파일 생성
+- [x] habitcell_db 생성 (utf8mb4)
+- [x] devices, email_verifications, backups 테이블
+- [x] fastapi/scripts/init_schema.sql
 
 ### 4.2 DB 연결
-- [ ] connection.py: habit_app_db, .env 기반 설정
-- [ ] .env.example: DB_HOST, DB_USER, DB_PASSWORD, DB_NAME
+- [x] connection.py: habitcell_db, .env 기반 설정
 
-### 4.3 이메일 인증 API
-- [ ] app/api/recovery.py 생성
-- [ ] POST /v1/recovery/email/request: 6자리 코드 생성, code_hash 저장, 이메일 발송
-- [ ] POST /v1/recovery/email/verify: code_hash 비교, devices.email 업데이트
-- [ ] email_service.py: send_verification_code (Habit App용)
+### 4.3 이메일 인증 API — ✅ 완료
+- [x] app/api/recovery.py 생성
+- [x] GET /v1/recovery/status?device_uuid=...: 이메일 인증 여부 조회
+- [x] POST /v1/recovery/email/request: 6자리 코드 생성, code_hash 저장, 이메일 발송
+- [x] POST /v1/recovery/email/verify: code_hash 비교, devices.email 업데이트
+- [x] email_service.py: send_verification_code (Habit App용)
 
 ### 4.4 백업 API
-- [ ] app/api/backups.py 생성
-- [ ] POST /v1/backups: payload 업서트 (ON DUPLICATE KEY UPDATE)
-- [ ] GET /v1/backups/latest?device_uuid=...: 최신 백업 조회
+- [x] app/api/backups.py
+- [x] POST /v1/backups: payload 업서트 (ON DUPLICATE KEY UPDATE)
+- [x] GET /v1/backups/latest?device_uuid=...: 최신 백업 조회
 
 ### 4.5 main.py
-- [ ] recovery, backups 라우터 등록  
-- [ ] (이미 Habit App API로 변경됨)
+- [x] backups 라우터 등록
+- [x] recovery 라우터 등록 (/v1/recovery)
 
 ---
 
@@ -233,8 +239,8 @@
 - [x] 습관별 통계 (달성일·연속일, 7/30일 달성률)
 
 ### 5.3 설정 화면
-- [ ] 백업: 수동/자동, 이메일 등록, 마지막 백업 시간
-- [ ] 복구 버튼
+- [x] 백업 & 복구: 수동/자동, 이메일 등록, 마지막 백업 시간, 복구 버튼
+- [x] 스토리지 갱신: 백업 간격(1/5/10분), 마지막 백업 시도 초기화
 - [x] 테마 (라이트/다크) - Drawer
 - [x] 다국어 - Drawer
 - [x] Drawer: 카테고리 관리, 다크모드, 화면꺼짐, 미리 알림, 언어, 평점
