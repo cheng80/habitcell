@@ -5,8 +5,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:habitcell/theme/app_colors.dart';
-import 'package:habitcell/theme/config_ui.dart';
+import 'package:habitcell/theme/app_theme_colors.dart';
+import 'package:habitcell/util/config_ui.dart';
 import 'package:habitcell/util/app_storage.dart';
 import 'package:habitcell/util/sheet_util.dart';
 import 'package:habitcell/util/tutorial_keys.dart';
@@ -52,7 +52,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
 
   /// 가이드 4.3: ShowcaseView 등록
   void _initTutorial(BuildContext context) {
-    final p = context.palette;
+    final p = context.appTheme;
     ShowcaseView.register(
       enableShowcase: !AppStorage.getTutorialCompleted(),
 
@@ -180,7 +180,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    final p = context.palette;
+    final p = context.appTheme;
 
     return Scaffold(
       key: _scaffoldKey,
@@ -270,7 +270,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
   }
 
   void _openHabitAddSheet() {
-    final p = context.palette;
+    final p = context.appTheme;
     showModalBottomSheet<HabitEditResult>(
       context: context,
       backgroundColor: p.sheetBackground,

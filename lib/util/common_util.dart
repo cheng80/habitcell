@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:habitcell/theme/app_colors.dart';
-import 'package:habitcell/theme/config_ui.dart';
+import 'package:habitcell/theme/app_theme_colors.dart';
+import 'package:habitcell/util/config_ui.dart';
 
 // ─── API Base URL ────────────────────────────────────────────────────────────
 
@@ -10,9 +10,10 @@ import 'package:habitcell/theme/config_ui.dart';
 /// Windows + Android 에뮬레이터 사용자는 자신의 호스트 IP를 설정하세요
 /// 예: 'http://192.168.1.50:8000'
 /// null이면 플랫폼에 따라 자동 선택 (Android: 10.0.2.2, iOS: 127.0.0.1)
-const String? customApiBaseUrl = null;
+// const String? customApiBaseUrl = null;
 // 윈도우 사용자는 윗줄 주석 처리 하고 아래 줄 주석 해제하여 자신의 호스트 IP를 설정하세요.
 // const String? customApiBaseUrl = 'http://192.168.90.7:8000';
+const String? customApiBaseUrl = 'http://cheng80.myqnapcloud.com:18001';
 
 /// 플랫폼별 기본 API Base URL 반환
 /// - Android 에뮬레이터: 10.0.2.2 (호스트 머신 루프백)
@@ -208,7 +209,7 @@ Future<bool> showConfirmDialog(
   Color confirmColor = Colors.red,
   bool useRootNavigator = true,
 }) async {
-  final p = context.palette;
+  final p = context.appTheme;
   final result = await showDialog<bool>(
     context: context,
     useRootNavigator: useRootNavigator,

@@ -2,7 +2,7 @@
 // Flat + Minimalism + Soft UI 공통 설정 (접근성·일관성)
 //
 // 위젯에서 ConfigUI.xxx 로 참조합니다.
-// 색상은 context.palette, 레이아웃/반경/애니메이션은 여기서 통일합니다.
+// 색상은 context.appTheme, 레이아웃/반경/애니메이션은 여기서 통일합니다.
 
 import 'package:flutter/material.dart';
 

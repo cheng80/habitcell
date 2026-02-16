@@ -5,8 +5,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitcell/model/habit_stats.dart';
-import 'package:habitcell/theme/app_colors.dart';
-import 'package:habitcell/theme/config_ui.dart';
+import 'package:habitcell/theme/app_theme_colors.dart';
+import 'package:habitcell/util/config_ui.dart';
 import 'package:habitcell/view/widgets/habit_heatmap.dart';
 import 'package:habitcell/vm/heatmap_theme_notifier.dart';
 
@@ -15,7 +15,7 @@ class AnalysisHeatmapSection extends StatelessWidget {
   final AsyncValue<List<DayAchievement>> heatmapAsync;
   final HeatmapTheme theme;
   final HeatmapRange heatmapRange;
-  final AppColorScheme palette;
+  final AppThemeColorsHelper palette;
 
   const AnalysisHeatmapSection({
     super.key,

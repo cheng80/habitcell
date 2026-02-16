@@ -10,9 +10,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitcell/service/in_app_review_service.dart';
-import 'package:habitcell/theme/app_colors.dart';
+import 'package:habitcell/theme/app_theme_colors.dart';
 import 'package:habitcell/util/common_util.dart';
-import 'package:habitcell/theme/config_ui.dart';
+import 'package:habitcell/util/config_ui.dart';
 import 'package:habitcell/vm/habit_list_notifier.dart';
 import 'package:habitcell/vm/heatmap_data_provider.dart';
 import 'package:habitcell/vm/habit_stats_provider.dart';
@@ -234,7 +234,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
     }
   }
 
-  Widget _buildMenuHeader(AppColorScheme p) {
+  Widget _buildMenuHeader(AppThemeColorsHelper p) {
     final content = Padding(
       padding: const EdgeInsets.fromLTRB(
         ConfigUI.screenPaddingH, 24, ConfigUI.screenPaddingH, 16,
@@ -271,7 +271,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    final p = context.palette;
+    final p = context.appTheme;
     final themeMode = ref.watch(themeNotifierProvider);
     final isDark =
         themeMode == ThemeMode.dark ||

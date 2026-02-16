@@ -2,7 +2,7 @@
 // BottomSheet 공통 스타일
 
 import 'package:flutter/material.dart';
-import 'package:habitcell/theme/config_ui.dart';
+import 'package:habitcell/util/config_ui.dart';
 
 /// 기본 BottomSheet 모양 (둥근 상단 모서리)
 ShapeBorder get defaultSheetShape => RoundedRectangleBorder(

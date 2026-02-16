@@ -8,12 +8,12 @@ import pymysql
 
 # TODO: 실제 데이터베이스 설정으로 변경 필요
 DB_CONFIG = {
-    'host': '127.0.0.1',
-    'user': 'root',
+    'host': 'cheng80.myqnapcloud.com',
+    'user': 'team0101',
     'password': 'qwer1234',
     'database': 'habitcell_db',
     'charset': 'utf8mb4',
-    'port': 3306
+    'port': 13306
 }
 
 

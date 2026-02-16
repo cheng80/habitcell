@@ -5,8 +5,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:habitcell/model/category.dart';
 import 'package:habitcell/model/habit_stats.dart';
-import 'package:habitcell/theme/app_colors.dart';
-import 'package:habitcell/theme/config_ui.dart';
+import 'package:habitcell/theme/app_theme_colors.dart';
+import 'package:habitcell/util/config_ui.dart';
 import 'package:habitcell/view/widgets/analysis/stat_item.dart';
 import 'package:habitcell/view/widgets/habit_heatmap.dart';
 
@@ -14,7 +14,7 @@ import 'package:habitcell/view/widgets/habit_heatmap.dart';
 class StatsPerHabitCards extends StatelessWidget {
   final OverallStats stats;
   final List<Category> categories;
-  final AppColorScheme palette;
+  final AppThemeColorsHelper palette;
 
   const StatsPerHabitCards({
     super.key,

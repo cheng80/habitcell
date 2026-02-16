@@ -3,12 +3,12 @@
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:habitcell/theme/app_colors.dart';
+import 'package:habitcell/theme/app_theme_colors.dart';
 import 'package:habitcell/util/sheet_util.dart';
 
 /// 다국어 선택 바텀시트 표시
 void showLanguagePickerSheet(BuildContext context) {
-  final p = context.palette;
+  final p = context.appTheme;
   showModalBottomSheet(
     context: context,
     backgroundColor: p.sheetBackground,
@@ -45,7 +45,7 @@ class _LangTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final p = context.palette;
+    final p = context.appTheme;
     final isSelected = context.locale == locale;
     return ListTile(
       leading: Icon(

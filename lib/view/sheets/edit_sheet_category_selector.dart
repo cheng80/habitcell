@@ -5,8 +5,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:habitcell/theme/app_colors.dart';
-import 'package:habitcell/theme/config_ui.dart';
+import 'package:habitcell/theme/app_theme_colors.dart';
+import 'package:habitcell/util/config_ui.dart';
 import 'package:habitcell/view/category_settings.dart';
 import 'package:habitcell/vm/category_list_notifier.dart';
 
@@ -25,7 +25,7 @@ class EditSheetCategorySelector extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final p = context.palette;
+    final p = context.appTheme;
     final categoriesAsync = ref.watch(categoryListProvider);
     final itemWidth = (MediaQuery.of(context).size.width - 48 - 12 * 4) / 5;
 
@@ -126,7 +126,7 @@ class _CategoryGridItem extends StatelessWidget {
   final bool isSelected;
   final double itemWidth;
   final VoidCallback onTap;
-  final AppColorScheme palette;
+  final AppThemeColorsHelper palette;
 
   const _CategoryGridItem({
     required this.label,

@@ -8,8 +8,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:habitcell/theme/app_colors.dart';
-import 'package:habitcell/theme/config_ui.dart';
+import 'package:habitcell/theme/app_theme_colors.dart';
+import 'package:habitcell/util/config_ui.dart';
 import 'package:habitcell/util/common_util.dart';
 import 'package:habitcell/view/widgets/analysis/analysis_heatmap_section.dart';
 import 'package:habitcell/view/widgets/analysis/heatmap_range_filter.dart';
@@ -28,7 +28,7 @@ class AnalysisScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final p = context.palette;
+    final p = context.appTheme;
     final statsAsync = ref.watch(habitStatsProvider);
     final heatmapRange = ref.watch(heatmapRangeProvider);
     final heatmapAsync = ref.watch(heatmapDataProvider(heatmapRange));
@@ -137,7 +137,7 @@ class AnalysisScreen extends ConsumerWidget {
   }
 }
 
-Widget _buildEmptyState(AppColorScheme p) {
+Widget _buildEmptyState(AppThemeColorsHelper p) {
   return Center(
     child: Padding(
       padding: const EdgeInsets.all(ConfigUI.paddingEmptyState),

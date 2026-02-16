@@ -5,8 +5,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitcell/model/category.dart';
-import 'package:habitcell/theme/app_colors.dart';
-import 'package:habitcell/theme/config_ui.dart';
+import 'package:habitcell/theme/app_theme_colors.dart';
+import 'package:habitcell/util/config_ui.dart';
 import 'package:habitcell/util/sheet_util.dart';
 import 'package:habitcell/view/sheets/category_editor_sheet.dart';
 import 'package:habitcell/view/widgets/category_tile.dart';
@@ -18,7 +18,7 @@ class CategorySettings extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final p = context.palette;
+    final p = context.appTheme;
     final categoriesAsync = ref.watch(categoryListProvider);
 
     return Scaffold(
@@ -83,7 +83,7 @@ class CategorySettings extends ConsumerWidget {
   }
 
   void _showCategoryEditor(BuildContext context, WidgetRef ref, {Category? category}) {
-    final p = context.palette;
+    final p = context.appTheme;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -94,7 +94,7 @@ class CategorySettings extends ConsumerWidget {
   }
 
   void _confirmDelete(BuildContext context, WidgetRef ref, Category category) {
-    final p = context.palette;
+    final p = context.appTheme;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(

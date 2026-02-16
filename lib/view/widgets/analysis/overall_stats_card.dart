@@ -4,14 +4,14 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:habitcell/model/habit_stats.dart';
-import 'package:habitcell/theme/app_colors.dart';
-import 'package:habitcell/theme/config_ui.dart';
+import 'package:habitcell/theme/app_theme_colors.dart';
+import 'package:habitcell/util/config_ui.dart';
 import 'package:habitcell/view/widgets/analysis/stat_item.dart';
 
 /// 전체 통계 카드
 class OverallStatsCard extends StatelessWidget {
   final OverallStats stats;
-  final AppColorScheme palette;
+  final AppThemeColorsHelper palette;
 
   const OverallStatsCard({
     super.key,

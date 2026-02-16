@@ -8,8 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitcell/service/backup_service.dart';
 import 'package:habitcell/service/notification_service.dart'
     show DeadlineReminderItem, NotificationService;
-import 'package:habitcell/theme/app_colors.dart';
-import 'package:habitcell/theme/config_ui.dart';
+import 'package:habitcell/theme/app_theme_colors.dart';
+import 'package:habitcell/util/config_ui.dart';
 import 'package:habitcell/util/app_storage.dart';
 import 'package:habitcell/util/common_util.dart';
 import 'package:habitcell/view/widgets/email_registration_card.dart';
@@ -91,14 +91,14 @@ class _BackupSettingsState extends ConsumerState<BackupSettings> {
           children: [
             Text('backupCooldownHint'.tr(),
                 style: TextStyle(
-                    color: context.palette.textMeta, fontSize: 12)),
+                    color: context.appTheme.textMeta, fontSize: 12)),
             const SizedBox(height: 8),
             ...([1, 5, 10].map((m) => ListTile(
                   dense: true,
                   title: Text('$m min'),
                   trailing: current == m
                       ? Icon(Icons.check,
-                          color: context.palette.primary, size: 20)
+                          color: context.appTheme.primary, size: 20)
                       : null,
                   onTap: () => Navigator.pop(ctx, m),
                 ))),
@@ -209,7 +209,7 @@ class _BackupSettingsState extends ConsumerState<BackupSettings> {
 
     final payload = fetchResult.payload!;
     debugPrint('[BackupSettings] _onRestore: 백업 발견, 확인 대화상자 표시');
-    final p = context.palette;
+    final p = context.appTheme;
     final choice = await showDialog<int>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -378,7 +378,7 @@ class _BackupSettingsState extends ConsumerState<BackupSettings> {
 
   // ─── 위젯 빌더: 백업 액션 섹션 ────────────────────────────────
   List<Widget> _buildBackupActionSection(
-      BuildContext context, WidgetRef ref, AppColorScheme p) {
+      BuildContext context, WidgetRef ref, AppThemeColorsHelper p) {
     return [
       Padding(
         padding: const EdgeInsets.symmetric(
@@ -453,7 +453,7 @@ class _BackupSettingsState extends ConsumerState<BackupSettings> {
 
   // ─── 위젯 빌더: 개발/설정 섹션 ───────────────────────────────
   List<Widget> _buildDevSettingsSection(
-      BuildContext context, AppColorScheme p) {
+      BuildContext context, AppThemeColorsHelper p) {
     return [
       Divider(color: p.divider, height: 1),
       Padding(
@@ -494,7 +494,7 @@ class _BackupSettingsState extends ConsumerState<BackupSettings> {
   // ─── build ────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    final p = context.palette;
+    final p = context.appTheme;
 
     return Scaffold(
       backgroundColor: p.background,

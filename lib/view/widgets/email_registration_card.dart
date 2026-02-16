@@ -5,8 +5,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:habitcell/service/backup_service.dart';
-import 'package:habitcell/theme/app_colors.dart';
-import 'package:habitcell/theme/config_ui.dart';
+import 'package:habitcell/theme/app_theme_colors.dart';
+import 'package:habitcell/util/config_ui.dart';
 import 'package:habitcell/util/common_util.dart';
 
 /// 이메일 등록/인증 카드
@@ -150,7 +150,7 @@ class _EmailRegistrationCardState extends State<EmailRegistrationCard> {
   // ─── build ────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    final p = context.palette;
+    final p = context.appTheme;
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -179,7 +179,7 @@ class _EmailRegistrationCardState extends State<EmailRegistrationCard> {
   }
 
   // ─── 카드 헤더 ────────────────────────────────────────────────
-  Widget _buildHeader(AppColorScheme p) {
+  Widget _buildHeader(AppThemeColorsHelper p) {
     return Row(
       children: [
         Icon(Icons.email_outlined, color: p.icon, size: 20),
@@ -204,7 +204,7 @@ class _EmailRegistrationCardState extends State<EmailRegistrationCard> {
   }
 
   // ─── 로딩 표시 ────────────────────────────────────────────────
-  Widget _buildLoadingIndicator(AppColorScheme p) {
+  Widget _buildLoadingIndicator(AppThemeColorsHelper p) {
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: Row(
@@ -223,7 +223,7 @@ class _EmailRegistrationCardState extends State<EmailRegistrationCard> {
   }
 
   // ─── 인증 완료 상태 ──────────────────────────────────────────
-  Widget _buildVerifiedRow(AppColorScheme p) {
+  Widget _buildVerifiedRow(AppThemeColorsHelper p) {
     return Padding(
       padding: const EdgeInsets.only(top: 8),
       child: Row(
@@ -244,7 +244,7 @@ class _EmailRegistrationCardState extends State<EmailRegistrationCard> {
   }
 
   // ─── 이메일 등록 폼 ──────────────────────────────────────────
-  Widget _buildRegistrationForm(AppColorScheme p) {
+  Widget _buildRegistrationForm(AppThemeColorsHelper p) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

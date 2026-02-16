@@ -11,7 +11,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:habitcell/model/habit_stats.dart';
-import 'package:habitcell/theme/config_ui.dart';
+import 'package:habitcell/util/config_ui.dart';
 import 'package:habitcell/util/date_util.dart';
 
 /// 기간별 히트맵

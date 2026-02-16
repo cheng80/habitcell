@@ -4,8 +4,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:habitcell/service/backup_service.dart';
-import 'package:habitcell/theme/app_colors.dart';
-import 'package:habitcell/theme/config_ui.dart';
+import 'package:habitcell/theme/app_theme_colors.dart';
+import 'package:habitcell/util/config_ui.dart';
 import 'package:intl/intl.dart';
 
 /// 서버 백업 존재 여부 + 마지막 백업 시각을 표시하는 카드
@@ -29,7 +29,7 @@ class ServerBackupStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final p = context.palette;
+    final p = context.appTheme;
     final hasBackup = recoveryStatus?.hasBackup ?? false;
     final lastAt = recoveryStatus?.lastBackupAt;
 

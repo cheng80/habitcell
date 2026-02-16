@@ -2,13 +2,13 @@
 // 분석 화면용 라벨+값 통계 아이템
 
 import 'package:flutter/material.dart';
-import 'package:habitcell/theme/app_colors.dart';
+import 'package:habitcell/theme/app_theme_colors.dart';
 
 /// 라벨 + 값 표시 (7일/30일/연속 등)
 class StatItem extends StatelessWidget {
   final String label;
   final String value;
-  final AppColorScheme palette;
+  final AppThemeColorsHelper palette;
 
   const StatItem({
     super.key,

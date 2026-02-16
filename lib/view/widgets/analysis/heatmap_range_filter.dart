@@ -3,15 +3,15 @@
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:habitcell/theme/app_colors.dart';
+import 'package:habitcell/theme/app_theme_colors.dart';
 import 'package:habitcell/model/habit_stats.dart';
-import 'package:habitcell/theme/config_ui.dart';
+import 'package:habitcell/util/config_ui.dart';
 
 /// 히트맵 기간 필터 (주/월/년/전체)
 class HeatmapRangeFilter extends StatelessWidget {
   final HeatmapRange current;
   final ValueChanged<HeatmapRange> onChanged;
-  final AppColorScheme palette;
+  final AppThemeColorsHelper palette;
 
   const HeatmapRangeFilter({
     super.key,

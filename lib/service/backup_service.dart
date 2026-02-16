@@ -25,23 +25,26 @@ class BackupService {
     final today = dateToday();
     final startDate = addDays(today, -730); // 2년
 
-    final categories =
-        (await _handler.getAllCategories()).map((c) => c.toMap()).toList();
+    final categories = (await _handler.getAllCategories())
+        .map((c) => c.toMap())
+        .toList();
     final habits = (await _handler.getAllHabitsIncludingDeleted())
         .map((h) => h.toMap())
         .toList();
-    final logs = (await _handler.getLogsInDateRange(startDate, today))
-        .map((l) => l.toMap())
-        .toList();
-    final heatmapRows =
-        await _handler.getHeatmapSnapshots(startDate, today);
+    final logs = (await _handler.getLogsInDateRange(
+      startDate,
+      today,
+    )).map((l) => l.toMap()).toList();
+    final heatmapRows = await _handler.getHeatmapSnapshots(startDate, today);
     final heatmapSnapshots = heatmapRows
-        .map((r) => {
-              'date': r['date'],
-              'achieved': r['achieved'],
-              'total': r['total'],
-              'level': r['level'],
-            })
+        .map(
+          (r) => {
+            'date': r['date'],
+            'achieved': r['achieved'],
+            'total': r['total'],
+            'level': r['level'],
+          },
+        )
         .toList();
 
     return {
@@ -77,7 +80,9 @@ class BackupService {
           )
           .timeout(const Duration(seconds: 30));
 
-      debugPrint('[BackupService] HTTP ${response.statusCode} ${response.body}');
+      debugPrint(
+        '[BackupService] HTTP ${response.statusCode} ${response.body}',
+      );
       if (response.statusCode >= 200 && response.statusCode < 300) {
         await AppStorage.saveLastBackupAt(DateTime.now());
         debugPrint('[BackupService] 백업 성공');
@@ -85,7 +90,8 @@ class BackupService {
       }
       debugPrint('[BackupService] 백업 실패: HTTP ${response.statusCode}');
       return BackupResult.failure(
-          'HTTP ${response.statusCode}: ${response.body}');
+        'HTTP ${response.statusCode}: ${response.body}',
+      );
     } catch (e, st) {
       debugPrint('[BackupService] backup error: $e\n$st');
       return BackupResult.failure(e.toString());
@@ -102,19 +108,31 @@ class BackupService {
       final base = getApiBaseUrl();
 
       // 1) 같은 기기 백업 시도
-      final latestUri = Uri.parse('$base/v1/backups/latest')
-          .replace(queryParameters: {'device_uuid': deviceUuid});
+      final latestUri = Uri.parse(
+        '$base/v1/backups/latest',
+      ).replace(queryParameters: {'device_uuid': deviceUuid});
       debugPrint('[BackupService] fetchLatestBackup: GET $latestUri');
-      var response = await http.get(latestUri).timeout(const Duration(seconds: 30));
-      debugPrint('[BackupService] fetchLatestBackup: HTTP ${response.statusCode}');
+      var response = await http
+          .get(latestUri)
+          .timeout(const Duration(seconds: 30));
+      debugPrint(
+        '[BackupService] fetchLatestBackup: HTTP ${response.statusCode}',
+      );
 
       // 2) 404면 다른 기기 복구 시도 (이메일로 조회)
       if (response.statusCode == 404) {
-        debugPrint('[BackupService] fetchLatestBackup: 같은 기기 백업 없음 → 다른 기기(이메일) 조회 시도');
-        final recoveryUri = Uri.parse('$base/v1/recovery/backup')
-            .replace(queryParameters: {'device_uuid': deviceUuid});
-        response = await http.get(recoveryUri).timeout(const Duration(seconds: 30));
-        debugPrint('[BackupService] fetchLatestBackup (recovery): HTTP ${response.statusCode}');
+        debugPrint(
+          '[BackupService] fetchLatestBackup: 같은 기기 백업 없음 → 다른 기기(이메일) 조회 시도',
+        );
+        final recoveryUri = Uri.parse(
+          '$base/v1/recovery/backup',
+        ).replace(queryParameters: {'device_uuid': deviceUuid});
+        response = await http
+            .get(recoveryUri)
+            .timeout(const Duration(seconds: 30));
+        debugPrint(
+          '[BackupService] fetchLatestBackup (recovery): HTTP ${response.statusCode}',
+        );
       }
 
       if (response.statusCode == 404) {
@@ -135,7 +153,9 @@ class BackupService {
       if (payload != null) {
         final habits = (payload['habits'] as List?)?.length ?? 0;
         final exportedAt = payload['exported_at'] as String? ?? '?';
-        debugPrint('[BackupService] fetchLatestBackup: 복구할 백업 발견 - exported_at=$exportedAt, 습관 ${habits}개');
+        debugPrint(
+          '[BackupService] fetchLatestBackup: 복구할 백업 발견 - exported_at=$exportedAt, 습관 ${habits}개',
+        );
       } else {
         debugPrint('[BackupService] fetchLatestBackup: payload가 null');
       }
@@ -151,13 +171,19 @@ class BackupService {
     try {
       final deviceUuid = await AppStorage.ensureDeviceUuid();
       final base = getApiBaseUrl();
-      final uri = Uri.parse('$base/v1/recovery/status')
-          .replace(queryParameters: {'device_uuid': deviceUuid});
+      final uri = Uri.parse(
+        '$base/v1/recovery/status',
+      ).replace(queryParameters: {'device_uuid': deviceUuid});
       debugPrint('[BackupService] GET $uri');
-      final response = await http.get(uri).timeout(const Duration(seconds: 5));
+      final response = await http.get(uri).timeout(const Duration(seconds: 15));
       debugPrint('[BackupService] recovery status HTTP ${response.statusCode}');
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        return RecoveryStatus(emailVerified: false, email: null, hasBackup: false, lastBackupAt: null);
+        return RecoveryStatus(
+          emailVerified: false,
+          email: null,
+          hasBackup: false,
+          lastBackupAt: null,
+        );
       }
       final json = jsonDecode(response.body) as Map<String, dynamic>;
       return RecoveryStatus(
@@ -168,7 +194,12 @@ class BackupService {
       );
     } catch (e, st) {
       debugPrint('[BackupService] fetchRecoveryStatus error: $e\n$st');
-      return RecoveryStatus(emailVerified: false, email: null, hasBackup: false, lastBackupAt: null);
+      return RecoveryStatus(
+        emailVerified: false,
+        email: null,
+        hasBackup: false,
+        lastBackupAt: null,
+      );
     }
   }
 
@@ -183,10 +214,15 @@ class BackupService {
           .post(
             uri,
             headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'device_uuid': deviceUuid, 'email': email.trim().toLowerCase()}),
+            body: jsonEncode({
+              'device_uuid': deviceUuid,
+              'email': email.trim().toLowerCase(),
+            }),
           )
           .timeout(const Duration(seconds: 30));
-      debugPrint('[BackupService] request verification HTTP ${response.statusCode} ${response.body}');
+      debugPrint(
+        '[BackupService] request verification HTTP ${response.statusCode} ${response.body}',
+      );
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return RecoveryResult.success();
       }
@@ -220,8 +256,10 @@ class BackupService {
               'code': code.trim(),
             }),
           )
-          .timeout(const Duration(seconds: 15));
-      debugPrint('[BackupService] verify HTTP ${response.statusCode} ${response.body}');
+          .timeout(const Duration(seconds: 30));
+      debugPrint(
+        '[BackupService] verify HTTP ${response.statusCode} ${response.body}',
+      );
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return RecoveryResult.success();
       }
@@ -244,7 +282,9 @@ class BackupService {
       final habits = (payload['habits'] as List?)?.length ?? 0;
       final categories = (payload['categories'] as List?)?.length ?? 0;
       final logs = (payload['logs'] as List?)?.length ?? 0;
-      debugPrint('[BackupService] restore: 복구 시작 - categories=$categories, habits=$habits, logs=$logs');
+      debugPrint(
+        '[BackupService] restore: 복구 시작 - categories=$categories, habits=$habits, logs=$logs',
+      );
       await _handler.restoreFromPayload(payload);
       debugPrint('[BackupService] restore: 복구 완료 성공');
       return RestoreResult.success();
@@ -259,7 +299,10 @@ class BackupService {
   /// - [fromBackground] true: 쿨다운 무시 (백그라운드 전환 시마다 백업)
   /// - [fromBackground] false: 쿨다운 적용 (인앱 액션 연속 시 스팸 방지)
   /// - [trigger] 백업 트리거 구분용 (디버깅)
-  Future<void> autoBackupIfNeeded({bool fromBackground = false, String? trigger}) async {
+  Future<void> autoBackupIfNeeded({
+    bool fromBackground = false,
+    String? trigger,
+  }) async {
     if (!AppStorage.getAutoBackupEnabled()) return;
     if (!fromBackground) {
       final lastAt = AppStorage.getLastBackupAttemptAt();
@@ -272,7 +315,10 @@ class BackupService {
       }
     }
     try {
-      final result = await backup(trigger: trigger ?? (fromBackground ? 'auto_background' : 'auto_in_app'));
+      final result = await backup(
+        trigger:
+            trigger ?? (fromBackground ? 'auto_background' : 'auto_in_app'),
+      );
       if (!result.success) {
         debugPrint('[BackupService] 자동 백업 실패(스킵): ${result.errorMessage}');
       }
@@ -311,8 +357,10 @@ class FetchBackupResult {
 class RecoveryStatus {
   final bool emailVerified;
   final String? email;
+
   /// 서버에 저장된 백업 존재 여부
   final bool hasBackup;
+
   /// 마지막 백업 시각 (ISO8601, null이면 없음)
   final String? lastBackupAt;
   const RecoveryStatus({

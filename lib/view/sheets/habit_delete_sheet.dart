@@ -4,8 +4,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:habitcell/theme/app_colors.dart';
-import 'package:habitcell/theme/config_ui.dart';
+import 'package:habitcell/theme/app_theme_colors.dart';
+import 'package:habitcell/util/config_ui.dart';
 import 'package:habitcell/util/common_util.dart';
 
 /// HabitDeleteSheet - 습관 삭제 확인
@@ -21,7 +21,7 @@ class HabitDeleteSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final p = context.palette;
+    final p = context.appTheme;
 
     return Container(
       padding: const EdgeInsets.all(ConfigUI.sheetPaddingH),

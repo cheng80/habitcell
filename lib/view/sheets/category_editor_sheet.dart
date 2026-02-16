@@ -8,8 +8,8 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitcell/model/category.dart';
 import 'package:habitcell/model/habit_color.dart';
-import 'package:habitcell/theme/app_colors.dart';
-import 'package:habitcell/theme/config_ui.dart';
+import 'package:habitcell/theme/app_theme_colors.dart';
+import 'package:habitcell/util/config_ui.dart';
 import 'package:habitcell/vm/category_list_notifier.dart';
 
 /// 카테고리 추가/수정 시트
@@ -44,7 +44,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final p = context.palette;
+    final p = context.appTheme;
 
     return Padding(
       padding: EdgeInsets.only(
@@ -165,7 +165,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
   }
 
   void _showPresetPicker() {
-    final p = context.palette;
+    final p = context.appTheme;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -204,7 +204,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
   }
 
   void _showMaterialPicker() {
-    final p = context.palette;
+    final p = context.appTheme;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(

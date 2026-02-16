@@ -2,7 +2,7 @@
 // 복구 다이얼로그 내 옵션 카드 위젯
 
 import 'package:flutter/material.dart';
-import 'package:habitcell/theme/app_colors.dart';
+import 'package:habitcell/theme/app_theme_colors.dart';
 
 /// 복구 다이얼로그 옵션 카드
 class RestoreOptionCard extends StatelessWidget {
@@ -10,7 +10,7 @@ class RestoreOptionCard extends StatelessWidget {
   final String title;
   final String? subtitle;
   final VoidCallback onTap;
-  final AppColorScheme palette;
+  final AppThemeColorsHelper palette;
   final bool isCancel;
 
   const RestoreOptionCard({

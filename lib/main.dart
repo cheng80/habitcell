@@ -18,6 +18,7 @@ import 'package:habitcell/util/app_storage.dart';
 import 'package:habitcell/view/main_scaffold.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:habitcell/theme/app_theme_colors.dart';
 import 'package:habitcell/vm/theme_notifier.dart';
 import 'package:habitcell/vm/habit_database_handler.dart';
 import 'package:habitcell/vm/habit_list_notifier.dart';
@@ -175,19 +176,21 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
       themeMode: themeMode,
       theme: ThemeData(
         brightness: Brightness.light,
+        scaffoldBackgroundColor: AppThemeColors.lightBackground,
         colorScheme: ColorScheme.light(
           primary: const Color(0xFF1976D2),
           onPrimary: Colors.white,
-          surface: const Color(0xFFF5F5F5),
+          surface: AppThemeColors.lightBackground,
           onSurface: const Color(0xFF212121),
         ),
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
+        scaffoldBackgroundColor: AppThemeColors.darkBackground,
         colorScheme: ColorScheme.dark(
           primary: Colors.white,
-          onPrimary: const Color.fromRGBO(26, 26, 26, 1),
-          surface: const Color.fromRGBO(26, 26, 26, 1),
+          onPrimary: const Color(0xFF1A1A1A),
+          surface: AppThemeColors.darkBackground,
           onSurface: Colors.white,
         ),
       ),

@@ -10,8 +10,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:habitcell/theme/app_colors.dart';
-import 'package:habitcell/theme/config_ui.dart';
+import 'package:habitcell/theme/app_theme_colors.dart';
+import 'package:habitcell/util/config_ui.dart';
 import 'package:habitcell/util/color_util.dart';
 import 'package:habitcell/util/tutorial_keys.dart';
 import 'package:habitcell/model/category.dart';
@@ -46,7 +46,7 @@ class HabitItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final p = context.palette;
+    final p = context.appTheme;
     final habit = item.habit;
     final todayCount = item.todayCount;
     final categories = ref.watch(categoryListProvider).value ?? [];
@@ -171,7 +171,7 @@ class HabitItem extends ConsumerWidget {
     int target,
     bool achieved,
     bool isCompleted,
-    AppColorScheme p,
+    AppThemeColorsHelper p,
     WidgetRef ref,
   ) {
     final row = _buildCountRow(
@@ -204,7 +204,7 @@ class HabitItem extends ConsumerWidget {
     bool isCompleted,
     String habitId,
     WidgetRef ref,
-    AppColorScheme p,
+    AppThemeColorsHelper p,
   ) {
     final grid = _CellGrid(
       count: count,
@@ -248,7 +248,7 @@ Widget _buildHeaderRow(
   BuildContext context,
   WidgetRef ref,
   Habit habit,
-  AppColorScheme p,
+  AppThemeColorsHelper p,
   VoidCallback onTap,
 ) {
   return Row(
@@ -288,7 +288,7 @@ Widget _buildCountRow(
   int target,
   bool achieved,
   bool isCompleted,
-  AppColorScheme p,
+  AppThemeColorsHelper p,
   WidgetRef ref,
 ) {
   return Row(
@@ -325,7 +325,7 @@ Widget _buildCountRow(
 class _CompleteButton extends StatelessWidget {
   final bool isCompleted;
   final VoidCallback onToggle;
-  final AppColorScheme palette;
+  final AppThemeColorsHelper palette;
 
   const _CompleteButton({
     required this.isCompleted,
@@ -380,7 +380,7 @@ class _CellGrid extends StatelessWidget {
   final bool isCompleted;
   final VoidCallback onFill;
   final VoidCallback onUnfill;
-  final AppColorScheme palette;
+  final AppThemeColorsHelper palette;
 
   const _CellGrid({
     required this.count,

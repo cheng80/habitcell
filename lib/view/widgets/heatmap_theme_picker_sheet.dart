@@ -4,8 +4,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:habitcell/theme/app_colors.dart';
-import 'package:habitcell/theme/config_ui.dart';
+import 'package:habitcell/theme/app_theme_colors.dart';
+import 'package:habitcell/util/config_ui.dart';
 import 'package:habitcell/util/sheet_util.dart';
 import 'package:habitcell/vm/heatmap_theme_notifier.dart';
 
@@ -15,7 +15,7 @@ void showHeatmapThemePickerSheet(
   HeatmapThemeNotifier notifier,
   HeatmapTheme current,
 ) {
-  final p = context.palette;
+  final p = context.appTheme;
   showModalBottomSheet(
     context: context,
     backgroundColor: p.sheetBackground,

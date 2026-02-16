@@ -10,8 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:habitcell/theme/app_colors.dart';
-import 'package:habitcell/theme/config_ui.dart';
+import 'package:habitcell/theme/app_theme_colors.dart';
+import 'package:habitcell/util/config_ui.dart';
 import 'package:habitcell/util/sheet_util.dart';
 import 'package:habitcell/util/common_util.dart';
 import 'package:habitcell/util/tutorial_keys.dart';
@@ -40,7 +40,7 @@ class _HabitHomeState extends ConsumerState<HabitHome> {
 
   @override
   Widget build(BuildContext context) {
-    final p = context.palette;
+    final p = context.appTheme;
     final habitsAsync = ref.watch(habitListProvider);
 
     ref.listen<AsyncValue<List<HabitWithTodayCount>>>(habitListProvider, (previous, next) {
@@ -273,7 +273,7 @@ class _HabitHomeState extends ConsumerState<HabitHome> {
   }
 
   Future<void> _showEditSheet({HabitWithTodayCount? item}) async {
-    final p = context.palette;
+    final p = context.appTheme;
     final result = await showModalBottomSheet<HabitEditResult>(
       context: context,
       backgroundColor: p.sheetBackground,
@@ -299,7 +299,7 @@ class _HabitHomeState extends ConsumerState<HabitHome> {
   }
 
   Future<void> _showDeleteSheet(BuildContext context, HabitWithTodayCount item) async {
-    final p = context.palette;
+    final p = context.appTheme;
     setState(() => _selectedForDeleteId = item.habit.id);
     await showModalBottomSheet(
       context: context,
@@ -322,7 +322,7 @@ class _FilterChip extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onSelected;
-  final AppColorScheme palette;
+  final AppThemeColorsHelper palette;
 
   const _FilterChip({
     required this.label,
@@ -351,7 +351,7 @@ class _FilterChip extends StatelessWidget {
   }
 }
 
-Widget _buildFilteredEmptyState(AppColorScheme p, _HabitFilter filter) {
+Widget _buildFilteredEmptyState(AppThemeColorsHelper p, _HabitFilter filter) {
   final message = switch (filter) {
     _HabitFilter.all => '',
     _HabitFilter.completed => 'filterEmptyCompleted'.tr(),
@@ -368,7 +368,7 @@ Widget _buildFilteredEmptyState(AppColorScheme p, _HabitFilter filter) {
   );
 }
 
-Widget _buildEmptyState(AppColorScheme p) {
+Widget _buildEmptyState(AppThemeColorsHelper p) {
   return Center(
     child: Padding(
       padding: const EdgeInsets.all(ConfigUI.paddingEmptyState),
@@ -394,7 +394,7 @@ Widget _buildEmptyState(AppColorScheme p) {
 }
 
 Widget _buildDragProxyDecorator(
-  AppColorScheme p,
+  AppThemeColorsHelper p,
   Widget child,
   Animation<double> animation,
 ) {
