@@ -1,4 +1,4 @@
-@startuml TagDo System Architecture
+@startuml HabitCell System Architecture
 
 ' ================== 레이아웃 ==================
 left to right direction
@@ -22,18 +22,25 @@ skinparam rectangle {
 }
 
 ' ================== APP ==================
-rectangle "📱 APP\n\n**TagDo**\n\nFlutter\nState Management:\n**Riverpod**" as App #E8F4FD
+rectangle "📱 APP\n\n**HabitCell**\n\nFlutter\nState Management:\n**Riverpod**" as App #E8F4FD
 
 ' ================== LOCAL STORAGE ==================
-database "Hive\n\nTodo Box\nTag Box" as Hive #E8F8F5
+database "SQLite\n(sqflite)\n\nhabitcell.db\n- categories\n- habits\n- habit_daily_logs\n- heatmap_daily_snapshots" as SQLite #E8F8F5
 
-rectangle "🔔 Notification\n\n- flutter_local_notifications" as Notif #FFF3E0
+rectangle "⚙️ GetStorage\n\n- device_uuid\n- theme_mode\n- locale\n- auto_backup\n- last_backup_at\n- wakelock" as Storage #FDEDEC
 
-rectangle "⚙️ GetStorage\n\n- Theme\n- Locale" as Storage #FDEDEC
+rectangle "🔔 Notification\n\n- flutter_local_notifications\n- app_badge_plus\n- Pre-reminder\n- Deadline 알림" as Notif #FFF3E0
+
+' ================== BACKEND ==================
+rectangle "☁️ FastAPI\n\n/v1/backups\n/v1/recovery" as API #E8F5E9
+
+database "MySQL\n\nhabitcell_db\n- devices\n- backups\n- email_verifications" as MySQL #E3F2FD
 
 ' ================== 연결 ==================
-App --> Hive : CRUD
-App --> Notif : Schedule/Cancel
-App --> Storage : Preferences
+App --> SQLite : CRUD\n(HabitDatabaseHandler)
+App --> Storage : Preferences\n(AppStorage)
+App --> Notif : Schedule/Cancel\n(NotificationService)
+App --> API : Backup/Restore\n(BackupService)
+API --> MySQL : CRUD
 
 @enduml
