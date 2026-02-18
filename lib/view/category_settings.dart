@@ -84,8 +84,10 @@ class CategorySettings extends ConsumerWidget {
 
   void _showCategoryEditor(BuildContext context, WidgetRef ref, {Category? category}) {
     final p = context.appTheme;
+    final rootContext = Navigator.of(context, rootNavigator: true).context;
     showModalBottomSheet(
-      context: context,
+      context: rootContext,
+      useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: p.sheetBackground,
       shape: defaultSheetShape,

@@ -6,6 +6,7 @@
 // [정책] 더미 삽입/전체 삭제 시 heatmapDataProvider, habitStatsProvider 무효화
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -285,10 +286,12 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             GestureDetector(
-              onLongPress: () {
-                HapticFeedback.mediumImpact();
-                setState(() => _showDevButtons = !_showDevButtons);
-              },
+              onLongPress: kReleaseMode
+                  ? null
+                  : () {
+                      HapticFeedback.mediumImpact();
+                      setState(() => _showDevButtons = !_showDevButtons);
+                    },
               child: _buildMenuHeader(p),
             ),
             Divider(color: p.divider, height: 1),
@@ -397,9 +400,12 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                       style: TextStyle(color: p.textPrimary, fontSize: 16),
                     ),
                     trailing: Icon(Icons.chevron_right, color: p.textSecondary),
-                    onTap: () {
+                    onTap: () async {
                       Navigator.pop(context);
-                      showLanguagePickerSheet(context);
+                      await Future.delayed(const Duration(milliseconds: 220));
+                      if (!mounted) return;
+                      final ctx = rootNavigatorKey.currentContext ?? context;
+                      if (ctx.mounted) showLanguagePickerSheet(ctx);
                     },
                   ),
                   ListTile(
@@ -456,11 +462,16 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                       style: TextStyle(color: p.textPrimary, fontSize: 16),
                     ),
                     trailing: Icon(Icons.chevron_right, color: p.textSecondary),
-                    onTap: () {
+                    onTap: () async {
                       final notifier = ref.read(heatmapThemeNotifierProvider.notifier);
                       final current = ref.read(heatmapThemeNotifierProvider);
                       Navigator.pop(context);
-                      showHeatmapThemePickerSheet(context, notifier, current);
+                      await Future.delayed(const Duration(milliseconds: 220));
+                      if (!mounted) return;
+                      final ctx = rootNavigatorKey.currentContext ?? context;
+                      if (ctx.mounted) {
+                        showHeatmapThemePickerSheet(ctx, notifier, current);
+                      }
                     },
                   ),
                   Divider(color: p.divider, height: 1),

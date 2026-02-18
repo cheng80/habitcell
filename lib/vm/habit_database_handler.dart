@@ -188,7 +188,7 @@ class HabitDatabaseHandler {
       'habits',
       where: 'is_deleted = ?',
       whereArgs: [0],
-      orderBy: 'sort_order ASC, updated_at DESC',
+      orderBy: 'sort_order ASC',
     );
     return rows.map((r) => Habit.fromMap(r)).toList();
   }
@@ -198,7 +198,7 @@ class HabitDatabaseHandler {
     final db = await database;
     final rows = await db.query(
       'habits',
-      orderBy: 'sort_order ASC, updated_at DESC',
+      orderBy: 'sort_order ASC',
     );
     return rows.map((r) => Habit.fromMap(r)).toList();
   }
@@ -254,6 +254,15 @@ class HabitDatabaseHandler {
       habit.title,
       habit.deadlineReminderTime,
       isCompletedToday: isCompleted,
+    );
+  }
+
+  /// 기존 습관 sort_order를 +1 시프트 (새 습관을 맨 위에 넣기 전 호출)
+  Future<void> shiftSortOrdersForInsertAtTop() async {
+    final db = await database;
+    await db.rawUpdate(
+      'UPDATE habits SET sort_order = sort_order + 1 WHERE is_deleted = ?',
+      [0],
     );
   }
 

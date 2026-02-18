@@ -3,7 +3,7 @@
 //
 // [레이아웃] 6열 그리드, daily_target만큼 칸 표시, 탭으로 +1/-1
 // [달성] count >= daily_target → 시각 변화, 완료 버튼 표시
-// [완료 토글] count >= target일 때만, 토글 시 sort_order 맨 뒤로 (DB)
+// [완료 토글] count >= target일 때만, 토글 시 순서 변경 없음 (sort_order 유지)
 // [카테고리] categoryId 있으면 상단 바 색상, 없으면 미표시
 
 import 'package:easy_localization/easy_localization.dart';

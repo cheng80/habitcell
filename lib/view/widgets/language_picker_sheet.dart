@@ -9,8 +9,10 @@ import 'package:habitcell/util/sheet_util.dart';
 /// 다국어 선택 바텀시트 표시
 void showLanguagePickerSheet(BuildContext context) {
   final p = context.appTheme;
+  final rootContext = Navigator.of(context, rootNavigator: true).context;
   showModalBottomSheet(
-    context: context,
+    context: rootContext,
+    useRootNavigator: true,
     backgroundColor: p.sheetBackground,
     shape: defaultSheetShape,
     builder: (ctx) => SafeArea(

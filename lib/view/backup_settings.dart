@@ -2,6 +2,7 @@
 // 백업/복구 전용 설정 화면 (Drawer에서 분리)
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -476,18 +477,19 @@ class _BackupSettingsState extends ConsumerState<BackupSettings> {
         ),
         onTap: () => _showCooldownDialog(context),
       ),
-      ListTile(
-        leading: Icon(Icons.refresh_outlined, color: p.icon),
-        title: Text(
-          'clearBackupAttempt'.tr(),
-          style: TextStyle(color: p.textPrimary, fontSize: 16),
+      if (!kReleaseMode)
+        ListTile(
+          leading: Icon(Icons.refresh_outlined, color: p.icon),
+          title: Text(
+            'clearBackupAttempt'.tr(),
+            style: TextStyle(color: p.textPrimary, fontSize: 16),
+          ),
+          subtitle: Text(
+            'clearBackupAttemptHint'.tr(),
+            style: TextStyle(color: p.textMeta, fontSize: 12),
+          ),
+          onTap: () => _onClearBackupAttempt(context),
         ),
-        subtitle: Text(
-          'clearBackupAttemptHint'.tr(),
-          style: TextStyle(color: p.textMeta, fontSize: 12),
-        ),
-        onTap: () => _onClearBackupAttempt(context),
-      ),
     ];
   }
 

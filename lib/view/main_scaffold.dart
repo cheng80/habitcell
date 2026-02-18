@@ -271,8 +271,11 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
 
   void _openHabitAddSheet() {
     final p = context.appTheme;
+    final rootContext = Navigator.of(context, rootNavigator: true).context;
     showModalBottomSheet<HabitEditResult>(
-      context: context,
+      context: rootContext,
+      useRootNavigator: true,
+      isDismissible: false,
       backgroundColor: p.sheetBackground,
       isScrollControlled: true,
       shape: defaultSheetShape,

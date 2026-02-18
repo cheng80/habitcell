@@ -2,7 +2,7 @@
 // 홈 탭 - 습관 목록, +1/-1, CRUD (MainScaffold의 body로 사용)
 //
 // [필터 정책] all=전체, completed=count>=target, uncompleted=미달성
-// [정렬] completed 토글 시 맨 아래 이동(DB sort_order), "전체"에서만 드래그 핸들 표시
+// [정렬] sort_order(등록순·드래그)만 사용, 완료 토글 시 순서 변경 없음. "전체"에서만 드래그 핸들 표시
 // [정책] 필터 결과 없어도 날짜·필터 버튼은 항상 표시 (다른 필터로 전환 가능)
 
 import 'package:easy_localization/easy_localization.dart';
@@ -274,8 +274,10 @@ class _HabitHomeState extends ConsumerState<HabitHome> {
 
   Future<void> _showEditSheet({HabitWithTodayCount? item}) async {
     final p = context.appTheme;
+    final rootContext = Navigator.of(context, rootNavigator: true).context;
     final result = await showModalBottomSheet<HabitEditResult>(
-      context: context,
+      context: rootContext,
+      useRootNavigator: true,
       backgroundColor: p.sheetBackground,
       isScrollControlled: true,
       shape: defaultSheetShape,
@@ -301,8 +303,10 @@ class _HabitHomeState extends ConsumerState<HabitHome> {
   Future<void> _showDeleteSheet(BuildContext context, HabitWithTodayCount item) async {
     final p = context.appTheme;
     setState(() => _selectedForDeleteId = item.habit.id);
+    final rootContext = Navigator.of(context, rootNavigator: true).context;
     await showModalBottomSheet(
-      context: context,
+      context: rootContext,
+      useRootNavigator: true,
       backgroundColor: p.sheetBackground,
       shape: defaultSheetShape,
       builder: (context) => HabitDeleteSheet(

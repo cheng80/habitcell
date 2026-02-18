@@ -16,8 +16,10 @@ void showHeatmapThemePickerSheet(
   HeatmapTheme current,
 ) {
   final p = context.appTheme;
+  final rootContext = Navigator.of(context, rootNavigator: true).context;
   showModalBottomSheet(
-    context: context,
+    context: rootContext,
+    useRootNavigator: true,
     backgroundColor: p.sheetBackground,
     shape: defaultSheetShape,
     builder: (ctx) => SafeArea(
