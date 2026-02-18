@@ -490,15 +490,16 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                       );
                     },
                   ),
-                  ListTile(
-                    leading: Icon(Icons.alarm_outlined, color: p.icon),
-                    title: Text(
-                      'alarmStatusCheck'.tr(),
-                      style: TextStyle(color: p.textPrimary, fontSize: 16),
+                  if (!kReleaseMode)
+                    ListTile(
+                      leading: Icon(Icons.alarm_outlined, color: p.icon),
+                      title: Text(
+                        'alarmStatusCheck'.tr(),
+                        style: TextStyle(color: p.textPrimary, fontSize: 16),
+                      ),
+                      trailing: Icon(Icons.info_outline, color: p.textSecondary, size: 20),
+                      onTap: () => _onAlarmStatusCheck(context, ref),
                     ),
-                    trailing: Icon(Icons.info_outline, color: p.textSecondary, size: 20),
-                    onTap: () => _onAlarmStatusCheck(context, ref),
-                  ),
                   if (_showDevButtons) ...[
                     Divider(color: p.divider, height: 1),
                     ListTile(

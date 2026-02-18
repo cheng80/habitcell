@@ -803,12 +803,22 @@ class HabitDatabaseHandler {
   /// [알고리즘] achievedPerDay: 사인파 + 노이즈로 0~nHabits 분포 생성
   /// [정책] toAchieve개 습관만 달성, 나머지는 target 미만으로 설정
   /// [정책] 카테고리: 0~9=해당 카테고리, -1=없음(미분류)
+  /// [정책] 재삽입 시 결과를 고정하기 위해 기존 습관/로그/히트맵 스냅샷을 먼저 초기화
   static const int _dummyDataDays = 548; // 1.5년
 
   Future<void> insertDummyData() async {
     final rand = Random();
     final today = _dateToday();
     final todayDt = DateTime.parse(today);
+    final db = await database;
+
+    // 더미 재삽입 시 이전 데이터가 섞이면 "전체 연속 달성"이 0으로 깨질 수 있으므로
+    // 습관/로그/스냅샷을 먼저 정리해 항상 동일한 검증 데이터셋을 만든다.
+    await db.transaction((txn) async {
+      await txn.delete('habit_daily_logs');
+      await txn.delete('heatmap_daily_snapshots');
+      await txn.delete('habits');
+    });
 
     final categories = await getAllCategories();
     final categoryIds = categories.map((c) => c.id).toList();

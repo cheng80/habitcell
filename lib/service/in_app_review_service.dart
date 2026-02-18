@@ -45,12 +45,12 @@ class InAppReviewService {
 
   /// 스토어 리뷰 화면으로 이동 (Drawer 버튼용, 횟수 제한 없음)
   /// iOS: appStoreId 필수 (App Store Connect > General > App Information > Apple ID)
-  /// 미출시 시 null → false 반환 (호출 측에서 스낵바 등 처리)
-  static const String? appStoreId = null; // TODO: 출시 후 Apple ID 입력
+  /// 값이 비어 있으면 false 반환 (호출 측에서 스낵바 등 처리)
+  static const String appStoreId = '6759329455';
 
   /// 스토어 화면 열기. 성공 시 true, 실패 시 false (예: appStoreId 미설정)
   Future<bool> openStoreListing() async {
-    if (appStoreId == null || appStoreId!.isEmpty) {
+    if (appStoreId.isEmpty) {
       if (defaultTargetPlatform == TargetPlatform.iOS) {
         return false;
       }

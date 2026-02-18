@@ -68,9 +68,9 @@
 - iOS bundle id: `com.cheng80.habitcell`
 - 카테고리: `Productivity`
 - 지원 이메일: `cheng80@gmail.com`
-- 개인정보처리방침 URL: `https://cheng80.myqnapcloud.com/web/habitcell/privacy.html`
-- 이용약관 URL: `https://cheng80.myqnapcloud.com/web/habitcell/terms.html`
-- 앱 소개/마케팅 URL: `https://cheng80.myqnapcloud.com/web/habitcell/index.html`
+- 개인정보처리방침 URL: `https://cheng80.myqnapcloud.com/habitcell/privacy.html`
+- 이용약관 URL: `https://cheng80.myqnapcloud.com/habitcell/terms.html`
+- 앱 소개/마케팅 URL: `https://cheng80.myqnapcloud.com/habitcell/index.html`
 - 앱 버전(현재): `1.0.0+1`
 
 ---
@@ -188,7 +188,7 @@ Play는 폭넓은 범위를 허용하므로, 아래 2종만 준비해도 안정�
 - Subtitle (en): `Habit Tracker with Heatmap` (<=30)
 - Primary Category: `Productivity`
 - Age Rating: 생산성 앱 기준 설문 응답
-- Privacy Policy URL: `https://cheng80.myqnapcloud.com/web/habitcell/privacy.html`
+- Privacy Policy URL: `https://cheng80.myqnapcloud.com/habitcell/privacy.html`
 
 ---
 
@@ -247,13 +247,13 @@ Permission
 - en 예시: `habit,tracker,heatmap,streak,goal,reminder,productivity`
 
 ### Support URL (필수)
-- `https://cheng80.myqnapcloud.com/web/habitcell/privacy.html`
+- `https://cheng80.myqnapcloud.com/habitcell/privacy.html`
 
 ### Marketing URL (선택)
-- `https://cheng80.myqnapcloud.com/web/habitcell/index.html`
+- `https://cheng80.myqnapcloud.com/habitcell/index.html`
 
 ### Copyright
-- `2026 cheng80`
+- `2026 KIM TAEK KWON`
 
 ---
 

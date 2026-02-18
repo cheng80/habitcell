@@ -37,6 +37,13 @@ class _HabitHomeState extends ConsumerState<HabitHome> {
   String? _selectedForDeleteId;
   bool _allExpanded = true;
   _HabitFilter _filter = _HabitFilter.all;
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -161,6 +168,7 @@ class _HabitHomeState extends ConsumerState<HabitHome> {
               child: filteredItems.isEmpty
                   ? _buildFilteredEmptyState(p, _filter)
                   : CustomScrollView(
+                controller: _scrollController,
                 slivers: [
                   if (_filter == _HabitFilter.all)
                     SliverReorderableList(

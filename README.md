@@ -2,6 +2,12 @@
 
 습관 추적 앱. 일별 기록(+1/-1), 히트맵(잔디 스타일), Streak, 카테고리별 통계를 지원한다.
 
+### 대표 이미지
+
+| 메인 화면 | 카테고리 관리 | 습관 분석 |
+|:---------:|:---------:|:---------:|
+| ![메인](docs/screensshots/iPhone/ko/iPhone_01.png) | ![카테고리 관리](docs/screensshots/iPhone/ko/iPhone_02.png) | ![습관 분석](docs/screensshots/iPhone/ko/iPhone_03.png) |
+
 ---
 
 ## 주요 기능
@@ -94,6 +100,26 @@ assets/
 - **Notifier**: Riverpod AsyncNotifier/Notifier. `ref.invalidateSelf()`로 재로딩
 - **테마**: `CommonColorScheme` + `context.palette` + `ConfigUI` (반경, 패딩, 폰트)
 - **다국어**: `easy_localization` + `assets/translations/`. Drawer에서 언어 선택
+
+### 시스템 구성도
+
+앱(Flutter/Riverpod), 로컬 저장소(SQLite/GetStorage), 알림, 백업 서버(FastAPI/MySQL) 간의 데이터 흐름:
+
+![System Diagram](docs/system/System_Diagram.png)
+
+### 데이터 모델 (ERD)
+
+#### SQLite (앱 로컬 DB)
+
+`habitcell.db`의 핵심 테이블(`categories`, `habits`, `habit_daily_logs`, `heatmap_daily_snapshots`) 구조:
+
+![SQLite ERD](docs/erd/erd_sqlite.png)
+
+#### MySQL (백업 서버 DB)
+
+서버 측 백업/인증 관련 테이블(`devices`, `backups`, `email_verifications`) 구조:
+
+![MySQL ERD](docs/erd/erd_mysql.png)
 
 ---
 

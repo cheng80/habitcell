@@ -280,6 +280,8 @@
 
 - [ ] [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md) 참고
 - [x] Bundle ID / applicationId: com.cheng80.habitcell 확정
+- [x] iOS 스크린샷 준비 완료 (6.7", 6.5", 5.5")
+- [ ] App Store 심사 결과 대기 중 (현재 심사 진행 중)
 - [ ] 카테고리: 생산성 또는 건강/피트니스
 - [ ] 개인정보처리방침 URL (iOS 필수)
 
