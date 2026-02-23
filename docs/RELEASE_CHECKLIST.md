@@ -16,6 +16,8 @@
 
 ## 앱 스토어 (iOS)
 
+- 현재 출시 버전: `1.0.0+2` (App Store 배포 완료)
+
 - [ ] **Apple Developer Program 가입**
   - [developer.apple.com](https://developer.apple.com) 연간 $99
 
@@ -45,9 +47,9 @@
     - `flutter build ios --release --build-name 1.0.1 --build-number 2`
   - 참고: iOS에서 `build-name` = `CFBundleShortVersionString`, `build-number` = `CFBundleVersion`
 
-- [x] **App Store 제출** (심사 진행 중)
+- [x] **App Store 제출** (출시 완료)
   - 가격 책정 (무료/유료)
-  - 심사 제출 (Review in Progress)
+  - 심사 제출 및 승인 (Released)
 
 ---
 
