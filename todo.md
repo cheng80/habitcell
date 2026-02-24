@@ -326,6 +326,16 @@
 
 ---
 
+## 다음 업데이트 (v1.1.0 예정)
+
+- [ ] **Android Edge-to-Edge 대응 (Play Console 권장 조치)**
+  - `android.view.Window.setStatusBarColor`, `setNavigationBarColor`, `setNavigationBarDividerColor` deprecated API 경고
+  - Android 15(API 35) 타겟 시 시스템이 Edge-to-Edge 자동 적용 → 기존 API 무시됨
+  - Flutter SDK 업그레이드 시 자연스럽게 해결될 수 있으나, 별도 대응 필요 시 `SystemChrome.setEnabledSystemUIMode` 등 검토
+  - 참고: Flutter 엔진 내부 호출이므로 앱 코드 직접 수정 불가 → SDK 버전 업 대기
+
+---
+
 ## 참고 문서
 
 - [docs/habit/master_habit_app_spec_v_1_0.md](docs/habit/master_habit_app_spec_v_1_0.md)
