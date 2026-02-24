@@ -281,7 +281,7 @@ class NotificationService {
             channelDescription: _channelDescription,
           ),
         ),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       );
       final pending = await _notifications.pendingNotificationRequests();
       await _updateBadgeCount(pending.length);
@@ -425,7 +425,7 @@ class NotificationService {
               channelDescription: _channelDescription,
             ),
           ),
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         );
         debugPrint('[Notification] 미리알림 점심 예약: ${lunch.hour}:${lunch.minute}');
       }
@@ -442,7 +442,7 @@ class NotificationService {
               channelDescription: _channelDescription,
             ),
           ),
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         );
         debugPrint('[Notification] 미리알림 저녁 예약: ${dinner.hour}:${dinner.minute}');
       }
