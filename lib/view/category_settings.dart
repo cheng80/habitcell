@@ -91,6 +91,7 @@ class CategorySettings extends ConsumerWidget {
       isScrollControlled: true,
       backgroundColor: p.sheetBackground,
       shape: defaultSheetShape,
+      constraints: sheetConstraints(rootContext, minHeightRatio: 0.35),
       builder: (_) => CategoryEditorSheet(category: category),
     );
   }

@@ -22,89 +22,116 @@ void showHeatmapThemePickerSheet(
     useRootNavigator: true,
     backgroundColor: p.sheetBackground,
     shape: defaultSheetShape,
-    builder: (ctx) => SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(ConfigUI.paddingCard),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'heatmapTheme'.tr(),
-              style: TextStyle(
-                color: p.textPrimary,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+    constraints: sheetConstraints(rootContext, minHeightRatio: 0.35),
+    builder: (ctx) {
+      final tablet = isTablet(ctx);
+      final cardWidth = tablet ? 116.0 : 88.0;
+      final cellSize = tablet ? 14.0 : 10.0;
+      final cellPad = tablet ? 3.0 : 2.0;
+      final gap = tablet ? 20.0 : 16.0;
+      final labelSize = tablet ? ConfigUI.fontSizeLabel : ConfigUI.fontSizeMeta;
+
+      return SafeArea(
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: tablet ? 32 : ConfigUI.sheetPaddingH,
+            vertical: tablet ? 24 : ConfigUI.paddingCard,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'heatmapTheme'.tr(),
+                style: TextStyle(
+                  color: p.textPrimary,
+                  fontSize: tablet
+                      ? ConfigUI.fontSizeTitle
+                      : ConfigUI.fontSizeSubtitle,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: HeatmapTheme.values.map((theme) {
-                final isSelected = current == theme;
-                final colors = getHeatmapColors(theme, p.divider);
-                return GestureDetector(
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    notifier.setTheme(theme);
-                    Navigator.pop(ctx);
-                  },
-                  child: Container(
-                    width: 72,
-                    padding: const EdgeInsets.all(ConfigUI.chipPaddingHCompact),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? p.primary.withValues(alpha: 0.2)
-                          : p.cardBackground,
-                      borderRadius: ConfigUI.cardRadius,
-                      border: Border.all(
-                        color: isSelected ? p.primary : p.divider,
-                        width: isSelected ? 2 : 1,
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(
-                            4,
-                            (i) => Padding(
-                              padding: const EdgeInsets.all(1),
-                              child: Container(
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  color: colors.levels[
-                                      i.clamp(0, colors.levels.length - 1)],
-                                  borderRadius: ConfigUI.heatmapCellRadius,
-                                ),
-                              ),
+              SizedBox(height: tablet ? 28 : 20),
+              Flexible(
+                child: Center(
+                  child: Wrap(
+                    spacing: gap,
+                    runSpacing: gap,
+                    alignment: WrapAlignment.center,
+                    children: HeatmapTheme.values.map((theme) {
+                      final isSelected = current == theme;
+                      final colors = getHeatmapColors(theme, p.divider);
+                      return GestureDetector(
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          notifier.setTheme(theme);
+                          Navigator.pop(ctx);
+                        },
+                        child: Container(
+                          width: cardWidth,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: tablet ? 10 : 8,
+                            vertical: tablet ? 16 : 12,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? p.primary.withValues(alpha: 0.2)
+                                : p.cardBackground,
+                            borderRadius: ConfigUI.cardRadius,
+                            border: Border.all(
+                              color: isSelected ? p.primary : p.divider,
+                              width: isSelected ? 2 : 1,
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'heatmapTheme_${theme.key}'.tr(),
-                          style: TextStyle(
-                            color: p.textPrimary,
-                            fontSize: 12,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: List.generate(
+                                    4,
+                                    (i) => Padding(
+                                      padding: EdgeInsets.all(cellPad),
+                                      child: Container(
+                                        width: cellSize,
+                                        height: cellSize,
+                                        decoration: BoxDecoration(
+                                          color: colors.levels[i.clamp(
+                                              0, colors.levels.length - 1)],
+                                          borderRadius:
+                                              ConfigUI.heatmapCellRadius,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: tablet ? 12 : 10),
+                              Text(
+                                'heatmapTheme_${theme.key}'.tr(),
+                                style: TextStyle(
+                                  color: p.textPrimary,
+                                  fontSize: labelSize,
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
-                      ],
-                    ),
+                      );
+                    }).toList(),
                   ),
-                );
-              }).toList(),
-            ),
-          ],
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-    ),
+      );
+    },
   );
 }

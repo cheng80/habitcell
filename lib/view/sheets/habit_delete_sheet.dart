@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:habitcell/theme/app_theme_colors.dart';
 import 'package:habitcell/util/config_ui.dart';
-import 'package:habitcell/util/common_util.dart';
+import 'package:habitcell/util/sheet_util.dart';
 
 /// HabitDeleteSheet - 습관 삭제 확인
 class HabitDeleteSheet extends StatelessWidget {
@@ -22,9 +22,10 @@ class HabitDeleteSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = context.appTheme;
+    final tablet = isTablet(context);
 
     return Container(
-      padding: const EdgeInsets.all(ConfigUI.sheetPaddingH),
+      padding: EdgeInsets.all(tablet ? 32 : ConfigUI.sheetPaddingH),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,

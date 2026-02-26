@@ -289,6 +289,7 @@ class _HabitHomeState extends ConsumerState<HabitHome> {
       backgroundColor: p.sheetBackground,
       isScrollControlled: true,
       shape: defaultSheetShape,
+      constraints: sheetConstraints(rootContext, minHeightRatio: 0.4),
       builder: (context) => HabitEditSheet(update: item?.habit),
     );
 
@@ -317,6 +318,7 @@ class _HabitHomeState extends ConsumerState<HabitHome> {
       useRootNavigator: true,
       backgroundColor: p.sheetBackground,
       shape: defaultSheetShape,
+      constraints: sheetConstraints(rootContext, minHeightRatio: 0.25),
       builder: (context) => HabitDeleteSheet(
         habitTitle: item.habit.title,
         onDelete: () => ref.read(habitListProvider.notifier).deleteHabit(item.habit.id),

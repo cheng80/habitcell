@@ -29,6 +29,17 @@ class HabitWithTodayCount {
   final int todayCount;
   final bool isCompleted;
   const HabitWithTodayCount(this.habit, this.todayCount, {this.isCompleted = false});
+
+  HabitWithTodayCount copyWith({
+    Habit? habit,
+    int? todayCount,
+    bool? isCompleted,
+  }) =>
+      HabitWithTodayCount(
+        habit ?? this.habit,
+        todayCount ?? this.todayCount,
+        isCompleted: isCompleted ?? this.isCompleted,
+      );
 }
 
 /// 습관 앱 SQLite DB Handler

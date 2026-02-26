@@ -498,9 +498,11 @@ class _BackupSettingsState extends ConsumerState<BackupSettings> {
   Widget build(BuildContext context) {
     final p = context.appTheme;
 
-    return Scaffold(
-      backgroundColor: p.background,
-      appBar: AppBar(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: p.background,
+        appBar: AppBar(
         backgroundColor: p.background,
         iconTheme: IconThemeData(color: p.icon),
         title: Text(
@@ -525,6 +527,7 @@ class _BackupSettingsState extends ConsumerState<BackupSettings> {
           ..._buildBackupActionSection(context, ref, p),
           ..._buildDevSettingsSection(context, p),
         ],
+        ),
       ),
     );
   }

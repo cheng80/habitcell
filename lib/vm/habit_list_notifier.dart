@@ -55,25 +55,48 @@ class HabitListNotifier extends AsyncNotifier<List<HabitWithTodayCount>> {
     BackupService().autoBackupIfNeeded(trigger: 'deleteHabit');
   }
 
-  /// 오늘 count +1
+  /// 오늘 count +1 (optimistic update)
   Future<void> incrementCount(String habitId) async {
+    _optimisticUpdate(habitId, (item) {
+      final newCount = item.todayCount + 1;
+      return item.copyWith(todayCount: newCount);
+    });
     await _dbHandler.incrementCount(habitId);
-    ref.invalidateSelf();
     BackupService().autoBackupIfNeeded(trigger: 'incrementCount');
   }
 
-  /// 오늘 count -1 (0 미만 방지)
+  /// 오늘 count -1 (0 미만 방지, optimistic update)
   Future<void> decrementCount(String habitId) async {
+    _optimisticUpdate(habitId, (item) {
+      final newCount = item.todayCount - 1;
+      if (newCount < 0) return item;
+      return item.copyWith(todayCount: newCount);
+    });
     await _dbHandler.decrementCount(habitId);
-    ref.invalidateSelf();
     BackupService().autoBackupIfNeeded(trigger: 'decrementCount');
   }
 
-  /// 오늘 완료 토글 (count >= target일 때만)
+  /// 오늘 완료 토글 (count >= target일 때만, optimistic update)
   Future<void> toggleCompleted(String habitId) async {
+    _optimisticUpdate(habitId, (item) {
+      if (item.todayCount < item.habit.dailyTarget) return item;
+      return item.copyWith(isCompleted: !item.isCompleted);
+    });
     await _dbHandler.toggleCompleted(habitId);
-    ref.invalidateSelf();
     BackupService().autoBackupIfNeeded(trigger: 'toggleCompleted');
+  }
+
+  /// state를 즉시 업데이트 (DB 반영 전)
+  void _optimisticUpdate(
+    String habitId,
+    HabitWithTodayCount Function(HabitWithTodayCount) updater,
+  ) {
+    final current = state.value;
+    if (current == null) return;
+    state = AsyncData([
+      for (final item in current)
+        if (item.habit.id == habitId) updater(item) else item,
+    ]);
   }
 
   /// 순서 변경

@@ -182,9 +182,11 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
   Widget build(BuildContext context) {
     final p = context.appTheme;
 
-    return Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: p.background,
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        key: _scaffoldKey,
+        backgroundColor: p.background,
       drawer: AppDrawer(
         onReplayTutorial: _restartTutorial,
         menuShowcaseKey: _tutorialKeys.menu,
@@ -266,6 +268,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
           ),
         ),
       ),
+      ),
     );
   }
 
@@ -279,6 +282,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
       backgroundColor: p.sheetBackground,
       isScrollControlled: true,
       shape: defaultSheetShape,
+      constraints: sheetConstraints(rootContext, minHeightRatio: 0.4),
       builder: (context) => const HabitEditSheet(update: null),
     ).then((result) async {
       if (result != null && mounted) {

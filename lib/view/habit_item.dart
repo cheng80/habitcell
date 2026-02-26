@@ -58,13 +58,23 @@ class HabitItem extends ConsumerWidget {
     final isCompleted = item.isCompleted;
     final keys = tutorialKeys;
 
+    final canQuickFill = todayCount < target && !isCompleted;
+
     Widget cardContent = GestureDetector(
       onLongPress: () {
         HapticFeedback.mediumImpact();
         onLongPress();
       },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+      onTap: canQuickFill
+          ? () {
+              (todayCount + 1 == target
+                  ? HapticFeedback.heavyImpact
+                  : HapticFeedback.mediumImpact)();
+              ref.read(habitListProvider.notifier).incrementCount(habit.id);
+            }
+          : null,
+      behavior: HitTestBehavior.translucent,
+      child: Container(
         margin: EdgeInsets.only(
           left: leftMargin ?? ConfigUI.listItemMarginLeft,
           right: rightMargin ?? ConfigUI.listItemMarginRight,
@@ -353,7 +363,9 @@ class _CompleteButton extends StatelessWidget {
             spacing: 6,
             children: [
               Icon(
-                isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
+                isCompleted
+                    ? Icons.check_circle
+                    : Icons.radio_button_unchecked,
                 color: palette.primary,
                 size: 22,
               ),
@@ -430,8 +442,7 @@ class _CellGrid extends StatelessWidget {
                     onUnfill();
                   }
                 },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
+                child: Container(
                   decoration: BoxDecoration(
                     color: filled
                         ? palette.primary.withValues(alpha: 0.25)

@@ -147,6 +147,7 @@ class _HabitEditSheetState extends ConsumerState<HabitEditSheet> {
   Widget build(BuildContext context) {
     final p = context.appTheme;
     final isUpdate = widget.update != null;
+    final tablet = isTablet(context);
 
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
@@ -154,8 +155,8 @@ class _HabitEditSheetState extends ConsumerState<HabitEditSheet> {
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
-        child: Container(
-          padding: const EdgeInsets.all(ConfigUI.sheetPaddingH),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(tablet ? 32 : ConfigUI.sheetPaddingH),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,

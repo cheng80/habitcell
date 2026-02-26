@@ -10,6 +10,7 @@ import 'package:habitcell/model/category.dart';
 import 'package:habitcell/model/habit_color.dart';
 import 'package:habitcell/theme/app_theme_colors.dart';
 import 'package:habitcell/util/config_ui.dart';
+import 'package:habitcell/util/sheet_util.dart';
 import 'package:habitcell/vm/category_list_notifier.dart';
 
 /// 카테고리 추가/수정 시트
@@ -45,15 +46,19 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
   @override
   Widget build(BuildContext context) {
     final p = context.appTheme;
+    final tablet = isTablet(context);
+    final hPad = tablet ? 32.0 : ConfigUI.sheetPaddingH;
 
-    return Padding(
-      padding: EdgeInsets.only(
-        left: ConfigUI.sheetPaddingH,
-        right: ConfigUI.sheetPaddingH,
-        top: 24,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
-      child: Column(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: hPad,
+          right: hPad,
+          top: tablet ? 32 : 24,
+          bottom: MediaQuery.of(context).viewInsets.bottom + (tablet ? 32 : 24),
+        ),
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -160,6 +165,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
             ),
           ),
         ],
+        ),
       ),
     );
   }
