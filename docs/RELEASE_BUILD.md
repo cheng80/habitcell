@@ -71,23 +71,30 @@ flutter build apk --release --build-name 1.0.1 --build-number 2
 
 ## iOS (App Store)
 
-### 1. 프로젝트 열기
+### 1. IPA 릴리즈 빌드
+
+App Store Connect 업로드용 IPA 생성:
 
 ```bash
-open ios/Runner.xcworkspace
+flutter build ipa --release --build-name 1.0.1 --build-number 2
 ```
 
-### 2. 릴리즈 빌드
+출력:
+- 기본 경로: `build/ios/ipa/Runner.ipa`
 
-```bash
-flutter build ios --release --build-name 1.0.1 --build-number 2
-```
+### 2. Transporter로 업로드
 
-### 3. Xcode에서 아카이브·업로드
+1. Mac App Store에서 **Transporter** 앱 설치
+2. Transporter 실행 후 Apple Developer 계정으로 로그인
+3. `build/ios/ipa/Runner.ipa` 파일을 드래그 앤 드롭
+4. **Deliver(전송)** 클릭하여 App Store Connect로 업로드
+5. App Store Connect에서 처리 완료 후 TestFlight/심사 제출 진행
 
-1. Xcode에서 Product → Archive
-2. Organizer에서 Distribute App → App Store Connect
-3. 업로드 완료 후 TestFlight 또는 심사 제출
+### 3. 업로드 전 확인 포인트
+
+- `pubspec.yaml` 버전/빌드 번호 증가 여부 확인
+- Xcode Signing(Team, Bundle Identifier, Provisioning Profile) 정상 설정 확인
+- 동일 버전 재업로드 시 빌드 번호(`build-number`)는 반드시 증가
 
 ---
 
@@ -97,7 +104,7 @@ flutter build ios --release --build-name 1.0.1 --build-number 2
 |--------|--------|
 | Android AAB | `flutter build appbundle --release --build-name <버전> --build-number <빌드번호>` |
 | Android APK | `flutter build apk --release --build-name <버전> --build-number <빌드번호>` |
-| iOS | `flutter build ios --release --build-name <버전> --build-number <빌드번호>` |
+| iOS IPA | `flutter build ipa --release --build-name <버전> --build-number <빌드번호>` |
 
 ---
 
