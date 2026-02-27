@@ -10,11 +10,39 @@
 - 잔디 색상 테마 시트: 셀 크기 확대, 태블릿 레이아웃 개선
 - 언어 선택 시트: 타이틀 추가, 태블릿 패딩·폰트 확대
 - 습관 편집/삭제/카테고리 편집 시트: 태블릿 패딩 확대
+- 키보드 unfocus 처리 (빈 영역 터치 시 키보드 내려감)
+- 습관 편집 시트 스크롤 가능 (소형 기기 오버플로우 해결)
 
 ### 웹페이지
 - TagDo / HabitCell 스토어 링크 적용 (Google Play, App Store)
 - App Hub 포털에 스토어 링크 추가
 - "다음 앱 자리" 템플릿 카드 주석 처리
+
+### Google Play 출시 노트 (한국어)
+
+```
+[v1.0.1 업데이트]
+
+- 체크 속도 개선: 습관 체크/해제가 즉시 반영됩니다
+- 터치 영역 확대: 카드 접힌 상태에서도 터치하면 바로 체크됩니다
+- 태블릿 지원 개선: iPad, Android 태블릿에서 시트 레이아웃이 더 보기 좋게 개선되었습니다
+- 잔디 테마 선택 화면 개선: 색상 미리보기가 더 크고 선택하기 쉬워졌습니다
+- 키보드 자동 내림: 입력 필드 외 영역 터치 시 키보드가 자동으로 내려갑니다
+- 기타 안정성 개선
+```
+
+### Google Play Release Notes (English)
+
+```
+[v1.0.1 Update]
+
+- Faster check: Habit check/uncheck now reflects instantly
+- Larger touch area: Tap anywhere on a collapsed card to quickly check in
+- Tablet support: Improved sheet layout for iPad and Android tablets
+- Theme picker: Larger color previews for easier selection
+- Auto keyboard dismiss: Keyboard hides when tapping outside input fields
+- Other stability improvements
+```
 
 ---
 
